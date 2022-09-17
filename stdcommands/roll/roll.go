@@ -57,5 +57,4 @@ RETURNING value_num`
 		err = result.Scan(&newVal)
 		return newVal, err
 	}
-}
-}
+}}
