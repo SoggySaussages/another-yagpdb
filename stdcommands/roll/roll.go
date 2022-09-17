@@ -1,13 +1,12 @@
 package roll
 
 import (
-	"fmt"
-	"math/rand"
-	"strings"
+	"common"
 
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dice"
+	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 )
 
 var Command = &commands.YAGCommand{
@@ -16,7 +15,8 @@ var Command = &commands.YAGCommand{
 	Description:     "Testing database functions in commands.",
 	DefaultEnabled:      true,
 	SlashCommandEnabled: true,
-	RunFunc: func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+	func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
 		vNum := templates.ToFloat64(1)
 		valueSerialized, err := serializeValue(vNum)
 		if err != nil {
@@ -54,4 +54,11 @@ RETURNING value_num`
 		err = result.Scan(&newVal)
 		return newVal, err
 	},
+	func serializeValue(v interface{}) ([]byte, error) {
+		var b bytes.Buffer
+		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
+		err := enc.Encode(v)
+		return b.Bytes(), err
+	}
+}
 }
