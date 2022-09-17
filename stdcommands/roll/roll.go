@@ -56,6 +56,6 @@ RETURNING value_num`
 		var newVal float64
 		err = result.Scan(&newVal)
 		return newVal, err
-	},
+	}
 }
 }
