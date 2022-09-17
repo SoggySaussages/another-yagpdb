@@ -4,8 +4,8 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
-	"github.com/botlabs-gg/yagpdb/v2/lib/dice"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+	"github.com/botlabs-gg/yagpdb/v2/customcommands"
 )
 
 var Command = &commands.YAGCommand{
@@ -15,6 +15,14 @@ var Command = &commands.YAGCommand{
 	DefaultEnabled:      true,
 	SlashCommandEnabled: true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+
+	func serializeValue(v interface{}) ([]byte, error) {
+		var b bytes.Buffer
+		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
+		err := enc.Encode(v)
+		return b.Bytes(), err
+	}
+
 	func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
 		vNum := templates.ToFloat64(1)
 		valueSerialized, err := serializeValue(vNum)
@@ -53,11 +61,5 @@ RETURNING value_num`
 		err = result.Scan(&newVal)
 		return newVal, err
 	},
-	func serializeValue(v interface{}) ([]byte, error) {
-		var b bytes.Buffer
-		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
-		err := enc.Encode(v)
-		return b.Bytes(), err
-	}
 }
 }
