@@ -358,7 +358,7 @@ func tmplDBSet(ctx *templates.Context) interface{} {
 
 func tmplDBSetExpire(ctx *templates.Context) func(userID int64, key interface{}, value interface{}, ttl int) (string, error) {
 	return func(userID int64, key interface{}, value interface{}, ttl int) (string, error) {
-		if ctx.IncreaseCheckCallCounterPremium("db_interactions", 10, 50) {
+		if ctx.IncreaseCheckCallCounterPremium("db_interactions", 10, 500) {
 			return "", templates.ErrTooManyCalls
 		}
 
