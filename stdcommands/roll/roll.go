@@ -16,16 +16,12 @@ var Command = &commands.YAGCommand{
 	SlashCommandEnabled: true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 
-	func serializeValue(v interface{}) ([]byte, error) {
-		var b bytes.Buffer
-		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
-		err := enc.Encode(v)
-		return b.Bytes(), err
-	}
-
 	func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
 		vNum := templates.ToFloat64(1)
-		valueSerialized, err := serializeValue(vNum)
+		var b bytes.Buffer
+		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
+		err := enc.Encode(vNum)
+		valueSerialized, err := b.Bytes()
 		if err != nil {
 			return "", err
 		}
