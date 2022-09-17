@@ -16,7 +16,7 @@ var Command = &commands.YAGCommand{
 	Description:     "Testing database functions in commands.",
 	DefaultEnabled:      true,
 	SlashCommandEnabled: true,
-	RunFunc: func tmplDBSet(ctx *templates.Context) interface{} {
+	RunFunc: tmplDBSet(ctx *templates.Context) interface{} {
 			return func(userID int64, key interface{}, value interface{}) (string, error) {
 				return (tmplDBSetExpire(ctx))(0, "devtest", 1, -1)
 			}
