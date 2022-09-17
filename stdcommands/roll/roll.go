@@ -1,11 +1,13 @@
 package roll
 
 import (
+	"bytes"
+
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
-	"github.com/botlabs-gg/yagpdb/v2/customcommands"
+	"github.com/vmihailenco/msgpack"
 )
 
 var Command = &commands.YAGCommand{
@@ -16,7 +18,7 @@ var Command = &commands.YAGCommand{
 	SlashCommandEnabled: true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 
-	func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
+	return func(userID int64, key interface{}, incrBy interface{}) (interface{}, error) {
 		vNum := templates.ToFloat64(1)
 		var b bytes.Buffer
 		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
