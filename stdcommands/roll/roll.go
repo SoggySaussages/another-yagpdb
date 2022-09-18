@@ -17,10 +17,6 @@ var Command = &commands.YAGCommand{
 	DefaultEnabled:      true,
 	SlashCommandEnabled: true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-
-		newValue := 0
-
-	func(interface{}, error) {
 		vNum := templates.ToFloat64(1)
 		var b bytes.Buffer
 		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
@@ -59,7 +55,6 @@ RETURNING value_num`
 
 		var newVal float64
 		err = result.Scan(&newVal)
-		newValue = newVal
+		return fmt.Sprintf(`Updated to %s.` newVal), err
 	}
-	return newValue, err
-}}
+}
