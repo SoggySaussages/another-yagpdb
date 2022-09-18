@@ -2,6 +2,7 @@ package roll
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/commands"
@@ -22,9 +23,9 @@ var Command = &commands.YAGCommand{
 		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
 		err := enc.Encode(vNum)
 		valueSerialized, err := b.Bytes(), err
-		if err != nil {
-			return
-		}
+//		if err != nil {
+//			return
+//		}
 
 		keyStr := "devtest"
 
