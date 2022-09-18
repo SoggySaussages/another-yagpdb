@@ -56,5 +56,5 @@ RETURNING value_num`
 
 		var newVal float64
 		err = result.Scan(&newVal)
-		return fmt.Sprintf(`Updated to %s.`, string(newVal)), err
+		return fmt.Sprintf(`Updated to %d.`, int(newVal)), err
 	}}
