@@ -18,14 +18,16 @@ var Command = &commands.YAGCommand{
 	SlashCommandEnabled: true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 
-	return func(interface{}, error) {
+		newValue := 0
+
+	func(interface{}, error) {
 		vNum := templates.ToFloat64(1)
 		var b bytes.Buffer
 		enc := msgpack.NewEncoder(templates.LimitWriter(&b, 100000))
 		err := enc.Encode(vNum)
 		valueSerialized, err := b.Bytes(), err
 		if err != nil {
-			return "", err
+			return
 		}
 
 		keyStr := "devtest"
@@ -57,6 +59,7 @@ RETURNING value_num`
 
 		var newVal float64
 		err = result.Scan(&newVal)
-		return newVal, err
+		newValue = newVal
 	}
+	return newValue, err
 }}
