@@ -33,7 +33,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/owldictionary"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/ping"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/poll"
-	"github.com/botlabs-gg/yagpdb/v2/stdcommands/roll"
+	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestdatabase"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/setstatus"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/simpleembed"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/sleep"
@@ -87,7 +87,7 @@ func (p *Plugin) AddCommands() {
 		advice.Command,
 		ping.Command,
 		throw.Command,
-		roll.Command,
+		devtestdatabase.Command,
 		customembed.Command,
 		simpleembed.Command,
 		currenttime.Command,
