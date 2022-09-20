@@ -18,8 +18,8 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dadjoke"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dcallvoice"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/define"
-	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestdatabase"
-	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestlistener"
+	"github.com/SoggySaussages/yagpdb/dev/stdcommands/devtestdatabase"
+	"github.com/SoggySaussages/yagpdb/dev/stdcommands/devtestlistener"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dogfact"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/findserver"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/globalrl"
@@ -89,6 +89,7 @@ func (p *Plugin) AddCommands() {
 		ping.Command,
 		throw.Command,
 		devtestdatabase.Command,
+		devtestlistener.Command,
 		customembed.Command,
 		simpleembed.Command,
 		currenttime.Command,
