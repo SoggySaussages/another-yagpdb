@@ -14,8 +14,6 @@ func (h HttpHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 }
 
 func RegisterPlugin() {
-	var err error
-
 	logrus.Info("Starting devtest listener")
 	go startHTTPServer()
 }
