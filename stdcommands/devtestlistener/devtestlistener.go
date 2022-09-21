@@ -1,6 +1,7 @@
 package devtestlistener
 
 import (
+	"encoding/json"
 	"net/http"
 	"io"
 
@@ -22,6 +23,6 @@ var Command = &commands.YAGCommand{
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	return str(body), err
+	return string(body), err
 
 	}}
