@@ -2,6 +2,8 @@ package listeners
 
 import (
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 type HttpHandler struct{}
@@ -11,7 +13,14 @@ func (h HttpHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write(data)
 }
 
-func Main() {
+func RegisterPlugin() {
+	var err error
+
+	logrus.Info("Starting devtest listener")
+	go startHTTPServer()
+}
+
+func startHTTPServer() {
 	handler := HttpHandler{}
 	http.ListenAndServe(":9000", handler)
 }
