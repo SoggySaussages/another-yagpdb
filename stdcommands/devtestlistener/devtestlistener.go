@@ -22,6 +22,6 @@ var Command = &commands.YAGCommand{
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	return body, err
+	return str(body), err
 
 	}}
