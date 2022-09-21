@@ -1,4 +1,4 @@
-package devtestlistenerserver
+package listeners
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ func (h HttpHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write(data)
 }
 
-func main() {
+func Main() {
 	handler := HttpHandler{}
 	http.ListenAndServe(":9000", handler)
 }
