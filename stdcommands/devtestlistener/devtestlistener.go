@@ -2,6 +2,7 @@ package devtestlistener
 
 import (
 	"net/http"
+	"io"
 
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
@@ -17,7 +18,7 @@ var Command = &commands.YAGCommand{
 
 	resp, err := http.Get("http://127.0.0.1:9000/")
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)

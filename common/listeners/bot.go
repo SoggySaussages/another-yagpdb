@@ -11,5 +11,7 @@ func (h HttpHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write(data)
 }
 
-handler := HttpHandler{}
-http.ListenAndServe(":9000", handler)
+func main() {
+	handler := HttpHandler{}
+	http.ListenAndServe(":9000", handler)
+}
