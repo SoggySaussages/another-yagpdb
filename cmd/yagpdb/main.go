@@ -96,7 +96,7 @@ func main() {
 	featureflags.RegisterPlugin()
 
 	//Start listeners
-	devtestlistener.StartListening()
+	listeners.devtestlistener()
 
 	run.Run()
 
