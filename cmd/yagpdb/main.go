@@ -46,7 +46,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/youtube"
 
 	// Listener inmports
-	"github.com/SoggySaussages/yagpdb/common/listeners"
+	"github.com/botlabs-gg/yagpdb/v2/common/listeners"
 	// External plugins
 )
 
