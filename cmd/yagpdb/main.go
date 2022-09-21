@@ -44,6 +44,9 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/twitter"
 	"github.com/botlabs-gg/yagpdb/v2/verification"
 	"github.com/botlabs-gg/yagpdb/v2/youtube"
+
+	// Listener inmports
+	"github.com/botlabs-gg/yagpdb/v2/common/listeners"
 	// External plugins
 )
 
@@ -92,5 +95,9 @@ func main() {
 	prom.RegisterPlugin()
 	featureflags.RegisterPlugin()
 
+	//Start listeners
+	listeners.RegisterPlugin()
+
 	run.Run()
+
 }
