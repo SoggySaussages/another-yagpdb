@@ -1,7 +1,6 @@
 package devtestlistener
 
 import (
-	"encoding/json"
 	"net/http"
 	"io"
 
