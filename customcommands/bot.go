@@ -388,13 +388,13 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 		return true
 	}
 
-	if !bot.IsNormalUserMessage(evt.Message) {
-		return true
-	}
+//	if !bot.IsNormalUserMessage(evt.Message) {
+//		return true
+//	}
 
-	if evt.Message.Author.Bot {
-		return true
-	}
+//	if evt.Message.Author.Bot {
+//		return true
+//	}
 
 	if hasPerms, _ := bot.BotHasPermissionGS(gs, cState.ID, discordgo.PermissionSendMessages); !hasPerms {
 		return true
@@ -406,7 +406,7 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 
 const (
 	CCMessageExecLimitNormal  = 3
-	CCMessageExecLimitPremium = 5
+	CCMessageExecLimitPremium = 500
 )
 
 var metricsExecutedCommands = promauto.NewCounterVec(prometheus.CounterOpts{
