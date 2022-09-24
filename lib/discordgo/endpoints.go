@@ -106,6 +106,7 @@ var (
 	EndpointChannelPermissions        = func(cID int64) string { return "" }
 	EndpointChannelPermission         = func(cID, tID int64) string { return "" }
 	EndpointChannelInvites            = func(cID int64) string { return "" }
+	EndpointChannelThreads            = func(cID int64) string { return "" }
 	EndpointChannelTyping             = func(cID int64) string { return "" }
 	EndpointChannelMessages           = func(cID int64) string { return "" }
 	EndpointChannelMessage            = func(cID, mID int64) string { return "" }
@@ -279,6 +280,7 @@ func CreateEndpoints(base string) {
 	EndpointChannelPermissions = func(cID int64) string { return EndpointChannels + StrID(cID) + "/permissions" }
 	EndpointChannelPermission = func(cID, tID int64) string { return EndpointChannels + StrID(cID) + "/permissions/" + StrID(tID) }
 	EndpointChannelInvites = func(cID int64) string { return EndpointChannels + StrID(cID) + "/invites" }
+	EndpointChannelThreads = func(cID int64) string { return EndpointChannels + StrID(cID) + "/threads" }
 	EndpointChannelTyping = func(cID int64) string { return EndpointChannels + StrID(cID) + "/typing" }
 	EndpointChannelMessages = func(cID int64) string { return EndpointChannels + StrID(cID) + "/messages" }
 	EndpointChannelMessage = func(cID, mID int64) string { return EndpointChannels + StrID(cID) + "/messages/" + StrID(mID) }
