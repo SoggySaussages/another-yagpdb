@@ -157,9 +157,9 @@ func (c *Context) tmplSendTemplate(channel interface{}, name string, data ...int
 }
 
 func (c *Context) sendNestedTemplate(channel interface{}, dm bool, name string, data ...interface{}) (interface{}, error) {
-	if c.IncreaseCheckCallCounter("exec_child", 3) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("exec_child", 3) {
+//		return "", ErrTooManyCalls
+//	}
 	if name == "" {
 		return "", errors.New("no template name passed")
 	}
@@ -480,9 +480,9 @@ func (c *Context) tmplEditMessage(filterSpecialMentions bool) func(channel inter
 
 func (c *Context) tmplPinMessage(unpin bool) func(channel, msgID interface{}) (string, error) {
 	return func(channel, msgID interface{}) (string, error) {
-		if c.IncreaseCheckCallCounter("message_pins", 5) {
-			return "", ErrTooManyCalls
-		}
+//		if c.IncreaseCheckCallCounter("message_pins", 5) {
+//			return "", ErrTooManyCalls
+//		}
 
 		cID := c.ChannelArgNoDM(channel)
 		if cID == 0 {
@@ -805,9 +805,9 @@ func (c *Context) tmplSetRoles(target interface{}, input interface{}) (string, e
 		return "", nil
 	}
 
-	if c.IncreaseCheckCallCounter("set_roles"+discordgo.StrID(targetID), 1) {
-		return "", errors.New("too many calls for specific user ID (max 1 / user)")
-	}
+//	if c.IncreaseCheckCallCounter("set_roles"+discordgo.StrID(targetID), 1) {
+//		return "", errors.New("too many calls for specific user ID (max 1 / user)")
+//	}
 
 	rv, _ := indirect(reflect.ValueOf(input))
 	switch rv.Kind() {
@@ -1167,9 +1167,9 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 
 		for _, reaction := range args[3:] {
 
-			if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionRemove(cID, mID, reaction.String(), uID); err != nil {
 				return reflect.Value{}, err
@@ -1205,9 +1205,9 @@ func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.V
 
 		if len(args) > 2 {
 			for _, emoji := range args[2:] {
-				if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-					return reflect.Value{}, ErrTooManyCalls
-				}
+//				if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
+//					return reflect.Value{}, ErrTooManyCalls
+//				}
 
 				if err := common.BotSession.MessageReactionRemoveEmoji(cID, mID, emoji.String()); err != nil {
 					return reflect.Value{}, err
@@ -1357,9 +1357,9 @@ func (c *Context) tmplGetChannelOrThread(channel interface{}) (*CtxChannel, erro
 
 func (c *Context) tmplGetChannelPins(pinCount bool) func(channel interface{}) (interface{}, error) {
 	return func(channel interface{}) (interface{}, error) {
-		if c.IncreaseCheckCallCounterPremium("channel_pins", 2, 4) {
-			return 0, ErrTooManyCalls
-		}
+//		if c.IncreaseCheckCallCounterPremium("channel_pins", 2, 4) {
+//			return 0, ErrTooManyCalls
+//		}
 
 		cID := c.ChannelArgNoDM(channel)
 		if cID == 0 {
@@ -1391,9 +1391,9 @@ func (c *Context) tmplAddReactions(values ...reflect.Value) (reflect.Value, erro
 		}
 
 		for _, reaction := range args {
-			if c.IncreaseCheckCallCounter("add_reaction_trigger", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_trigger", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionAdd(c.Msg.ChannelID, c.Msg.ID, reaction.String()); err != nil {
 				return reflect.Value{}, err
@@ -1408,9 +1408,9 @@ func (c *Context) tmplAddReactions(values ...reflect.Value) (reflect.Value, erro
 func (c *Context) tmplAddResponseReactions(values ...reflect.Value) (reflect.Value, error) {
 	f := func(args []reflect.Value) (reflect.Value, error) {
 		for _, reaction := range args {
-			if c.IncreaseCheckCallCounter("add_reaction_response", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_response", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			c.CurrentFrame.AddResponseReactionNames = append(c.CurrentFrame.AddResponseReactionNames, reaction.String())
 		}
@@ -1447,9 +1447,9 @@ func (c *Context) tmplAddMessageReactions(values ...reflect.Value) (reflect.Valu
 				continue
 			}
 
-			if c.IncreaseCheckCallCounter("add_reaction_message", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_message", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionAdd(cID, mID, reaction.String()); err != nil {
 				return reflect.Value{}, err
@@ -1592,36 +1592,36 @@ func (c *Context) reSplit(r, s string, i ...int) ([]string, error) {
 }
 
 func (c *Context) tmplEditChannelName(channel interface{}, newName string) (string, error) {
-	if c.IncreaseCheckCallCounter("edit_channel", 10) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel", 10) {
+//		return "", ErrTooManyCalls
+//	}
 
 	cID := c.ChannelArgNoDMNoThread(channel)
 	if cID == 0 {
 		return "", errors.New("unknown channel")
 	}
 
-	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	_, err := common.BotSession.ChannelEdit(cID, newName)
 	return "", err
 }
 
 func (c *Context) tmplEditChannelTopic(channel interface{}, newTopic string) (string, error) {
-	if c.IncreaseCheckCallCounter("edit_channel", 10) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel", 10) {
+//		return "", ErrTooManyCalls
+//	}
 
 	cID := c.ChannelArgNoDMNoThread(channel)
 	if cID == 0 {
 		return "", errors.New("unknown channel")
 	}
 
-	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	edit := &discordgo.ChannelEdit{
 		Topic: newTopic,
@@ -1632,9 +1632,9 @@ func (c *Context) tmplEditChannelTopic(channel interface{}, newTopic string) (st
 }
 
 func (c *Context) tmplOnlineCount() (int, error) {
-	if c.IncreaseCheckCallCounter("online_users", 1) {
-		return 0, ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("online_users", 1) {
+//		return 0, ErrTooManyCalls
+//	}
 
 	gwc, err := common.BotSession.GuildWithCounts(c.GS.ID)
 	if err != nil {
@@ -1652,20 +1652,20 @@ func (c *Context) tmplCountBots() (int, error) {
 
 	botCount := 0
 
-	for _, v := range c.GS.Members {
-		if v.Bot {
-	 		botCount++
-	 	}
-	 }
+	//for _, v := range c.GS.Members {
+	//	if v.Bot {
+	//		botCount++
+	// 	}
+	// }
 
 	return botCount, nil
 }
 
 func (c *Context) tmplEditNickname(Nickname string) (string, error) {
 
-	if c.IncreaseCheckCallCounter("edit_nick", 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_nick", 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	if c.MS == nil {
 		return "", nil
@@ -1686,9 +1686,9 @@ func (c *Context) tmplEditNickname(Nickname string) (string, error) {
 }
 
 func (c *Context) tmplSort(input interface{}, sortargs ...interface{}) (interface{}, error) {
-	if c.IncreaseCheckCallCounterPremium("sortfuncs", 1, 3) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounterPremium("sortfuncs", 1, 3) {
+//		return "", ErrTooManyCalls
+//	}
 
 	inputSlice, _ := indirect(reflect.ValueOf(input))
 	switch inputSlice.Kind() {
