@@ -633,8 +633,10 @@ func baseContextFuncs(c *Context) {
 
 	c.addContextFunc("sort", c.tmplSort)
 
-	c.addContextFunc("createThread", discordgo.ChannelThreadCreate)
-	c.addContextFunc("createChannel", discordgo.GuildChannelCreate)
+	c.addContextFunc("createThread", common.BotSession.ChannelThreadCreate)
+	c.addContextFunc("createChannel", common.BotSession.GuildChannelCreate)
+	c.addContextFunc("deleteChannel", common.BotSession.ChannelDelete)
+	c.addContextFunc("lastMessage", common.BotSession.ChannelLastMessage)
 }
 
 type limitedWriter struct {

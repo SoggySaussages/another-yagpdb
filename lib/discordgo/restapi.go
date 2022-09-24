@@ -1562,6 +1562,28 @@ func (s *Session) ChannelMessages(channelID int64, limit int, beforeID, afterID,
 	return
 }
 
+func (s *Session) ChannelLastMessage(channelID int64, limit int, beforeID, afterID, aroundID int64) (st []*Message, err error) {
+
+	uri := EndpointChannelMessages(channelID)
+
+	v := url.Values{}
+	if limit > 0 {
+		v.Set("limit", strconv.Itoa(1))
+	}
+
+	if len(v) > 0 {
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
+	}
+
+	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointChannelMessages(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
 // ChannelMessage gets a single message by ID from a given channel.
 // channeld  : The ID of a Channel
 // messageID : the ID of a Message
