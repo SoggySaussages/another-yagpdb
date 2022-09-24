@@ -629,7 +629,7 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("editChannelTopic", c.tmplEditChannelTopic)
 	c.addContextFunc("editNickname", c.tmplEditNickname)
 	c.addContextFunc("onlineCount", c.tmplOnlineCount)
-	c.addContextFunc("onlineCountBots", c.tmplOnlineCountBots)
+	c.addContextFunc("countBots", c.tmplCountBots)
 
 	c.addContextFunc("sort", c.tmplSort)
 }

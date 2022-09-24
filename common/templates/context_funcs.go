@@ -1645,20 +1645,20 @@ func (c *Context) tmplOnlineCount() (int, error) {
 }
 
 // DEPRECATED: this function will likely not return
-func (c *Context) tmplOnlineCountBots() (int, error) {
+func (c *Context) tmplCountBots() (int, error) {
 	// if c.IncreaseCheckCallCounter("online_bots", 1) {
 	// 	return 0, ErrTooManyCalls
 	// }
 
-	// botCount := 0
+	botCount := 0
 
-	// for _, v := range c.GS.Members {
-	// 	if v.Bot && v.PresenceSet && v.PresenceStatus != dstate.StatusOffline {
-	// 		botCount++
-	// 	}
-	// }
+	for _, v := range c.GS.Members {
+		if v.Bot {
+	 		botCount++
+	 	}
+	 }
 
-	return 0, nil
+	return botCount, nil
 }
 
 func (c *Context) tmplEditNickname(Nickname string) (string, error) {
