@@ -632,6 +632,9 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("countBots", c.tmplCountBots)
 
 	c.addContextFunc("sort", c.tmplSort)
+
+	c.addContextFunc("createThread", discordgo.ChannelThreadCreate)
+	c.addContextFunc("createChannel", discordgo.GuildChannelCreate)
 }
 
 type limitedWriter struct {

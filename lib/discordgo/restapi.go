@@ -1499,6 +1499,22 @@ func (s *Session) ChannelDelete(channelID int64) (st *Channel, err error) {
 	return
 }
 
+func (s *Session) ChannelThreadCreate(channelID int64, name string) (st *Channel, err error) {
+
+	data := struct {
+		Name string      `json:"name"`
+		Type ChannelType `json:"type"`
+	}{name, 11}
+
+	body, err := s.RequestWithBucketID("POST", EndpointChannelThreads(channelID), data, nil, EndpointChannelThreads(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
 // ChannelTyping broadcasts to all members that authenticated user is typing in
 // the given channel.
 // channelID  : The ID of a Channel
