@@ -710,21 +710,21 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	})
 
 	// do not allow concurrent executions of the same custom command, to prevent most common kinds of abuse
-	lockKey := CCExecKey{
-		GuildID: cmd.GuildID,
-		CCID:    cmd.LocalID,
-	}
-	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
-	if lockHandle == -1 {
-		f.Warn("Exceeded max lock attempts for cc")
-		if cmd.ShowErrors {
-			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
-		}
-		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
-		return nil
-	}
-
-	defer CCExecLock.Unlock(lockKey, lockHandle)
+//	lockKey := CCExecKey{
+//		GuildID: cmd.GuildID,
+//		CCID:    cmd.LocalID,
+//	}
+//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
+//	if lockHandle == -1 {
+//		f.Warn("Exceeded max lock attempts for cc")
+//		if cmd.ShowErrors {
+//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
+//		}
+//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
+//		return nil
+//	}
+//
+//	defer CCExecLock.Unlock(lockKey, lockHandle)
 
 	go analytics.RecordActiveUnit(cmd.GuildID, &Plugin{}, "executed_cc")
 
@@ -734,8 +734,11 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	chanMsg := cmd.Responses[rand.Intn(len(cmd.Responses))]
 	out, err := tmplCtx.Execute(chanMsg)
 
+	debugErr := false
+
 	if utf8.RuneCountInString(out) > 2000 {
-		out = "Custom command (#" + discordgo.StrID(cmd.LocalID) + ") response was longer than 2k (contact an admin on the server...)"
+		debugErr = true
+		out = "Command failed (Err Response length " + discordgo.StrID(cmd.LocalID) + "). This error has been reported."
 	}
 
 	go updatePostCommandRan(cmd, err)
@@ -744,12 +747,20 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	if err != nil {
 		logger.WithField("guild", tmplCtx.GS.ID).WithError(err).Error("Error executing custom command")
 		if cmd.ShowErrors {
+			debugErr = true
 			out += "\nAn error caused the execution of the custom command template to stop:\n"
 			out += formatCustomCommandRunErr(chanMsg, err)
 		}
 	}
 
-	_, err = tmplCtx.SendResponse(out)
+	if debugErr {
+		_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
+	}
+
+	if !debugErr {
+		_, err = tmplCtx.SendResponse(out)
+	}
+
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
@@ -901,8 +912,8 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 	if cmd.ShowErrors {
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
-
-		common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, out)
+//	Logging in debug channel now -Veda
+		common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
 
 	updatePostCommandRan(cmd, err)

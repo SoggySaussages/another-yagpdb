@@ -311,7 +311,7 @@ func (c *Context) Parse(source string) (*template.Template, error) {
 
 const (
 	MaxOpsNormal  = 1000000
-	MaxOpsPremium = 2500000
+	MaxOpsPremium = 25000000
 )
 
 func (c *Context) Execute(source string) (string, error) {
@@ -359,7 +359,7 @@ func (c *Context) executeParsed() (string, error) {
 	}
 
 	var buf bytes.Buffer
-	w := LimitWriter(&buf, 25000)
+	w := LimitWriter(&buf, 250000)
 
 	// started := time.Now()
 	err := parsed.Execute(w, c.Data)
@@ -372,7 +372,7 @@ func (c *Context) executeParsed() (string, error) {
 	result := buf.String()
 	if err != nil {
 		if err == io.ErrShortWrite {
-			err = errors.New("response grew too big (>25k)")
+			err = errors.New("System error: Shortwrite. This error has been reported.")
 		}
 
 		return result, errors.WithMessage(err, "Failed executing template")
@@ -394,19 +394,28 @@ func (c *Context) newContextFrame(cs *dstate.ChannelState) *ContextFrame {
 
 func (c *Context) ExecuteAndSendWithErrors(source string, channelID int64) error {
 	out, err := c.Execute(source)
+	debugErr := false
 
 	if utf8.RuneCountInString(out) > 2000 {
-		out = "Template output for " + c.Name + " was longer than 2k (contact an admin on the server...)"
+		debugErr = true
+		out = "Command failed (Err Response length " + c.Name + "). This error has been reported."
 	}
 
 	// deal with the results
 	if err != nil {
+		debugErr = true
 		logger.WithField("guild", c.GS.ID).WithError(err).Error("Error executing template: " + c.Name)
 		out += "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
 	}
 
-	c.SendResponse(out)
+	if debugErr != false {
+		common.BotSession.ChannelMessageSend(1022650665224380426, out)
+	}
+
+	if debugErr != true {
+		c.SendResponse(out)
+	}
 
 	return nil
 }
@@ -456,15 +465,15 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 	isDM := c.CurrentFrame.SendResponseInDM || (c.CurrentFrame.CS != nil && c.CurrentFrame.CS.IsPrivate())
 
 	var embeds []*discordgo.MessageEmbed
-	for _, v := range c.CurrentFrame.EmebdsToSend {
-		if isDM {
-			v.Footer = &discordgo.MessageEmbedFooter{
-				Text:    "Custom Command DM from the server " + c.GS.Name,
-				IconURL: c.GS.Icon,
-			}
-		}
-		embeds = append(embeds, v)
-	}
+//	for _, v := range c.CurrentFrame.EmebdsToSend {
+//		if isDM {
+//			v.Footer = &discordgo.MessageEmbedFooter{
+//				Text:    "Custom Command DM from the server " + c.GS.Name,
+//				IconURL: c.GS.Icon,
+//			}
+//		}
+//		embeds = append(embeds, v)
+//	}
 	common.BotSession.ChannelMessageSendEmbedList(channelID, embeds)
 
 	if strings.TrimSpace(content) == "" || (c.CurrentFrame.DelResponse && c.CurrentFrame.DelResponseDelay < 1) {
@@ -472,9 +481,9 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 		return nil, nil
 	}
 
-	if isDM {
-		content = "Custom Command DM from the server **" + c.GS.Name + "**\n" + content
-	}
+//	if isDM {
+//		content = "Custom Command DM from the server **" + c.GS.Name + "**\n" + content
+//	}
 
 	m, err := common.BotSession.ChannelMessageSendComplex(channelID, c.MessageSend(content))
 	if err != nil {
@@ -637,6 +646,13 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("createChannel", common.BotSession.GuildChannelCreate)
 	c.addContextFunc("deleteChannel", common.BotSession.ChannelDelete)
 	c.addContextFunc("lastMessage", common.BotSession.ChannelLastMessage)
+
+	c.addContextFunc("getMembers", common.BotSession.GuildMembers)
+	c.addContextFunc("getServer", common.BotSession.GuildGet)
+	c.addContextFunc("moveToVoiceChannel", common.BotSession.GuildMemberMove)
+	c.addContextFunc("getInvites", common.BotSession.GuildInvites)
+	c.addContextFunc("getInvite", common.BotSession.InviteWithCounts)
+	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
 }
 
 type limitedWriter struct {

@@ -683,6 +683,17 @@ func (s *Session) GuildDelete(guildID int64) (st *Guild, err error) {
 	return
 }
 
+func (s *Session) GuildGet(guildID int64) (st *Guild, err error) {
+
+	body, err := s.RequestWithBucketID("GET", EndpointGuild(guildID), nil, nil, EndpointGuild(guildID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
 // GuildLeave leaves a Guild.
 // guildID   : The ID of a Guild
 func (s *Session) GuildLeave(guildID int64) (err error) {
