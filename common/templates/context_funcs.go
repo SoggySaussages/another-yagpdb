@@ -344,11 +344,11 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			return ""
 		}
 
-		isDM := cid != c.ChannelArgNoDM(channel)
-		gName := c.GS.Name
-		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
-		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
-		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//		isDM := cid != c.ChannelArgNoDM(channel)
+//		gName := c.GS.Name
+//		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
+//		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
+//		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
 		var m *discordgo.Message
 		msgSend := &discordgo.MessageSend{
@@ -361,46 +361,46 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		switch typedMsg := msg.(type) {
 		case *discordgo.MessageEmbed:
-			if isDM {
-				typedMsg.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: icon,
-				}
-			}
+//			if isDM {
+//				typedMsg.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: icon,
+//				}
+//			}
 			msgSend.Embeds = []*discordgo.MessageEmbed{typedMsg}
 		case []*discordgo.MessageEmbed:
-			if isDM {
-				for _, e := range typedMsg {
-					e.Footer = &discordgo.MessageEmbedFooter{
-						Text:    embedInfo,
-						IconURL: icon,
-					}
-				}
-			}
+//			if isDM {
+//				for _, e := range typedMsg {
+//					e.Footer = &discordgo.MessageEmbedFooter{
+//						Text:    embedInfo,
+//						IconURL: icon,
+//					}
+//				}
+//			}
 		case *discordgo.MessageSend:
 			msgSend = typedMsg
 			msgSend.AllowedMentions = discordgo.AllowedMentions{Parse: parseMentions, RepliedUser: repliedUser}
-			if isDM {
-				if len(typedMsg.Embeds) > 0 {
-					for _, e := range msgSend.Embeds {
-						e.Footer = &discordgo.MessageEmbedFooter{
-							Text:    embedInfo,
-							IconURL: icon,
-						}
-					}
-				} else {
-					typedMsg.Content = info + "\n" + typedMsg.Content
-				}
-			}
+//			if isDM {
+//				if len(typedMsg.Embeds) > 0 {
+//					for _, e := range msgSend.Embeds {
+//						e.Footer = &discordgo.MessageEmbedFooter{
+//							Text:    embedInfo,
+//							IconURL: icon,
+//						}
+//					}
+//				} else {
+//					typedMsg.Content = info + "\n" + typedMsg.Content
+//				}
+//			}
 			if msgSend.Reference != nil && msgSend.Reference.ChannelID == 0 {
 				msgSend.Reference.ChannelID = cid
 			}
 		default:
-			if isDM {
-				msgSend.Content = info + "\n" + ToString(msg)
-			} else {
+//			if isDM {
+//				msgSend.Content = info + "\n" + ToString(msg)
+//			} else {
 				msgSend.Content = ToString(msg)
-			}
+//			}
 		}
 
 		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
