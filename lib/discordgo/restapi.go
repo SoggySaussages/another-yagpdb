@@ -2785,3 +2785,8 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 	_, err = s.RequestWithBucketID("DELETE", EndpointInteractionFollowupMessage(applicationID, token, messageID), nil, nil, EndpointInteractionFollowupMessage(0, "", 0))
 	return
 }
+
+
+
+// Stuff that is not discordgo :p - Veda
+
