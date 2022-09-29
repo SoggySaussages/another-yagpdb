@@ -682,7 +682,7 @@ func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomComm
 }
 
 // func ExecuteCustomCommand(cmd *models.CustomCommand, cmdArgs []string, stripped string, s *discordgo.Session, m *discordgo.MessageCreate) (resp string, tmplCtx *templates.Context, err error) {
-func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context, slashtrigger bool) error {
+func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context, slashtrigger bool) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			actualErr := ""
@@ -766,7 +766,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	}
 
 	if err != nil {
-		return errors.WithStackIf(err)
+		return "" errors.WithStackIf(err)
 	}
 	return nil
 }
