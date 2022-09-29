@@ -24,6 +24,10 @@ var Command = &commands.YAGCommand{
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", data.GuildData.GS.ID, data.Args[0].Int())).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
 		gs := bot.State.GetGuild(data.GuildData.GS.ID)
 		cs := gs.GetChannel(data.ChannelID)
 		ms := data.GuildData.MS
