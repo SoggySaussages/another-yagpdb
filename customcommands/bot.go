@@ -758,15 +758,20 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	}
 
 	if debugErr {
+		errCase := fmt.Print((899999)+100000)
+		if slashtrigger {
+			out = fmt.Sprintf("**Case Number:** `%d`\n%s", errCase, out)
+			return fmt.Sprintf("An error occurred. This has been logged. Check <#1023064061824479242> or <#1019413814548123678> for support.\n`Case number: %d`", errCase), nil
+		}
 		_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
 
-	if slashtrigger {
-		return out, err
-	}
-
 	if !debugErr {
-		_, err = tmplCtx.SendResponse(out)
+		if slashtrigger {
+			return out, err
+		} else {
+			_, err = tmplCtx.SendResponse(out)
+		}
 	}
 
 	if err != nil {
