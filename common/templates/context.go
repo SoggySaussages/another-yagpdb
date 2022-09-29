@@ -188,10 +188,11 @@ type ContextFrame struct {
 	SendResponseInDM bool
 }
 
-func NewContext(gs *dstate.GuildSet, cs *dstate.ChannelState, ms *dstate.MemberState) *Context {
+func NewContext(gs *dstate.GuildSet, cs *dstate.ChannelState, ms *dstate.MemberState, interacdata string) *Context {
 	ctx := &Context{
 		GS: gs,
 		MS: ms,
+		interactiondata: interacdata,
 
 		BotUser: common.BotUser,
 
@@ -226,6 +227,10 @@ func (c *Context) setupBaseData() {
 		c.Data["Server"] = c.GS
 		c.Data["server"] = c.GS
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
+	}
+
+	if c.interactiondata != nil {
+		c.Data["InteractionData"] = c.interactiondata
 	}
 
 	if c.CurrentFrame.CS != nil {
