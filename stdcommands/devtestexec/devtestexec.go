@@ -29,5 +29,5 @@ var Command = &commands.YAGCommand{
 		ms := data.GuildData.MS
 		tmplCtx := templates.NewContext(gs, cs, ms)
 		tmplCtx.Data["SlashArgs"] = data.Args[1].Str
-		return customcommands.ExecuteCustomCommand(cmd, tmplCtx, true), err
+		return customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
 	}}
