@@ -216,7 +216,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			newCtx.Data["StackDepth"] = currentStackDepth + 1
 			newCtx.IsExecedByLeaveMessage = ctx.IsExecedByLeaveMessage
 
-			go ExecuteCustomCommand(cmd, newCtx)
+			go ExecuteCustomCommand(cmd, newCtx, false)
 			return "", nil
 		}
 

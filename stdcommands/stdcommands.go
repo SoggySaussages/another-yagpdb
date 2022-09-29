@@ -19,6 +19,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dcallvoice"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/define"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestdatabase"
+	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestexec"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestlistener"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dogfact"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/findserver"
@@ -89,6 +90,7 @@ func (p *Plugin) AddCommands() {
 		ping.Command,
 		throw.Command,
 		devtestdatabase.Command,
+		devtestexec.Command,
 		devtestlistener.Command,
 		customembed.Command,
 		simpleembed.Command,

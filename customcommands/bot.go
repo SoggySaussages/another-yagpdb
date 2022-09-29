@@ -95,7 +95,7 @@ func handleCustomCommandsRunNow(event *pubsub.Event) {
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
 	tmplCtx := templates.NewContext(gs, cs, nil)
-	ExecuteCustomCommand(dataCast, tmplCtx)
+	ExecuteCustomCommand(dataCast, tmplCtx, false)
 
 	dataCast.LastRun = null.TimeFrom(time.Now())
 	err := UpdateCommandNextRunTime(dataCast, true, true)
@@ -327,7 +327,7 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	err = ExecuteCustomCommand(cmd, tmplCtx)
+	err = ExecuteCustomCommand(cmd, tmplCtx, false)
 	return false, err
 }
 
@@ -366,7 +366,7 @@ func handleNextRunScheduledEVent(evt *schEventsModels.ScheduledEvent, data inter
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
 	tmplCtx := templates.NewContext(gs, cs, nil)
-	ExecuteCustomCommand(cmd, tmplCtx)
+	ExecuteCustomCommand(cmd, tmplCtx, false)
 
 	// schedule next runs
 	cmd.LastRun = cmd.NextRun
@@ -492,7 +492,7 @@ func ExecuteCustomCommandFromReaction(cc *models.CustomCommand, gs *dstate.Guild
 	tmplCtx.Data["Message"] = message
 	tmplCtx.Data["ReactionAdded"] = added
 
-	return ExecuteCustomCommand(cc, tmplCtx)
+	return ExecuteCustomCommand(cc, tmplCtx, false)
 }
 
 func HandleMessageCreate(evt *eventsystem.EventData) {
@@ -678,11 +678,11 @@ func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomComm
 	}
 	tmplCtx.Data["Message"] = m
 
-	return ExecuteCustomCommand(cmd, tmplCtx)
+	return ExecuteCustomCommand(cmd, tmplCtx, false)
 }
 
 // func ExecuteCustomCommand(cmd *models.CustomCommand, cmdArgs []string, stripped string, s *discordgo.Session, m *discordgo.MessageCreate) (resp string, tmplCtx *templates.Context, err error) {
-func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context) error {
+func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context, slashtrigger bool) error {
 	defer func() {
 		if err := recover(); err != nil {
 			actualErr := ""
@@ -755,6 +755,10 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 
 	if debugErr {
 		_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
+	}
+
+	if slashtrigger {
+		return out, err
 	}
 
 	if !debugErr {
