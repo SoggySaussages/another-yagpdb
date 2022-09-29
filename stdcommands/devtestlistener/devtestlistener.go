@@ -17,7 +17,7 @@ var Command = &commands.YAGCommand{
 	SlashCommandEnabled: true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "UserID", Type: dcmd.BigInt},
-		{Name: "UserID", Type: dcmd.String},
+		{Name: "Key", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 
