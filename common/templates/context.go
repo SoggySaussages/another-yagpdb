@@ -231,9 +231,7 @@ func (c *Context) setupBaseData() {
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
 	}
 
-	if c.interactiondata != nil {
-		c.Data["InteractionData"] = c.interactiondata
-	}
+	c.Data["InteractionData"] = c.interactiondata
 
 	if c.CurrentFrame.CS != nil {
 		channel := CtxChannelFromCS(c.CurrentFrame.CS)
