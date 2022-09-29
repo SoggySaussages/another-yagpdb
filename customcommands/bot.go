@@ -327,7 +327,7 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	err = ExecuteCustomCommand(cmd, tmplCtx, false)
+	_, err = ExecuteCustomCommand(cmd, tmplCtx, false)
 	return false, err
 }
 
@@ -492,7 +492,9 @@ func ExecuteCustomCommandFromReaction(cc *models.CustomCommand, gs *dstate.Guild
 	tmplCtx.Data["Message"] = message
 	tmplCtx.Data["ReactionAdded"] = added
 
-	return ExecuteCustomCommand(cc, tmplCtx, false)
+	_, err := ExecuteCustomCommand(cc, tmplCtx, false)
+
+	return err
 }
 
 func HandleMessageCreate(evt *eventsystem.EventData) {
@@ -678,7 +680,9 @@ func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomComm
 	}
 	tmplCtx.Data["Message"] = m
 
-	return ExecuteCustomCommand(cmd, tmplCtx, false)
+	_, err := ExecuteCustomCommand(cmd, tmplCtx, false)
+
+	return err
 }
 
 // func ExecuteCustomCommand(cmd *models.CustomCommand, cmdArgs []string, stripped string, s *discordgo.Session, m *discordgo.MessageCreate) (resp string, tmplCtx *templates.Context, err error) {
@@ -768,7 +772,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	if err != nil {
 		return "", errors.WithStackIf(err)
 	}
-	return nil
+	return "", err
 }
 
 func formatCustomCommandRunErr(src string, err error) string {

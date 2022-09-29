@@ -19,8 +19,8 @@ var Command = &commands.YAGCommand{
 		{Name: "UserID", Type: dcmd.BigInt},
 		{Name: "UserID", Type: dcmd.String},
 	},
-	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-err := nil
+	RunFunc: func(data *dcmd.Data) (interface{}) {
+
 //	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:9000/%d/%s", data.Args[0].Int64(), data.Args[1].Str())
 //	if err != nil {
 //		return nil, err
@@ -33,5 +33,5 @@ err := nil
 //	}
 
 //	return string(body), err
-return "this command is on hold for a sec, i'll work on it closer to testing environment", err
+return "this command is on hold for a sec, i'll work on it closer to testing environment"
 	}}

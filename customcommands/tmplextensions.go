@@ -752,8 +752,7 @@ func serializeValue(v interface{}) ([]byte, error) {
 
 // returns true if were above db limit for the specified guild
 func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
-// No limits - Veda
-	return false, err
+
 
 	limitMuliplier := 1
 	if isPremium, _ := premium.IsGuildPremium(gs.ID); isPremium {
@@ -767,6 +766,9 @@ func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
 		return false, err
 	}
 
+	// No limits - Veda
+	return false, err
+	
 	return curValues >= int64(limit), nil
 }
 
