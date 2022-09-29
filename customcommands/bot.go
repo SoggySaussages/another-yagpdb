@@ -761,6 +761,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 		errCase := rand.Intn(899999)+100000
 		if slashtrigger {
 			out = fmt.Sprintf("**Case Number:** `%d`\n%s", errCase, out)
+			_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
 			return fmt.Sprintf("An error occurred. This has been logged. Check <#1023064061824479242> or <#1019413814548123678> for support.\n`Case number: %d`", errCase), nil
 		}
 		_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
