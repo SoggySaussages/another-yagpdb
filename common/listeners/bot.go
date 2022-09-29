@@ -2,10 +2,10 @@ package listeners
 
 import (
 	"net/http"
-	"io"
-	"fmt"
+//	"io"
+//	"fmt"
 
-	"github.com/botlabs-gg/yagpdb/v2/customcommands"
+//	"github.com/botlabs-gg/yagpdb/v2/customcommands"
 	"github.com/sirupsen/logrus"
 )
 
