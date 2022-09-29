@@ -151,6 +151,8 @@ type Context struct {
 	Msg     *discordgo.Message
 	BotUser *discordgo.User
 
+	interactiondata      string
+
 	DisabledContextFuncs []string
 	ContextFuncs         map[string]interface{}
 	Data                 map[string]interface{}
