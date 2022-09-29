@@ -766,7 +766,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	}
 
 	if err != nil {
-		return "" errors.WithStackIf(err)
+		return "", errors.WithStackIf(err)
 	}
 	return nil
 }
