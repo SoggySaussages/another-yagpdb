@@ -19,6 +19,7 @@ var Command = &commands.YAGCommand{
 	Description: "Executes a specified command",
 	DefaultEnabled:      true,
 	SlashCommandEnabled: true,
+	RequiredArgs:  2,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "CCID", Type: dcmd.Int},
 		{Name: "Args", Type: dcmd.String},
