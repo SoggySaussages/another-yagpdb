@@ -706,7 +706,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	tmplCtx.Data["CCTrigger"] = cmd.TextTrigger
 
 	if slashtrigger {
-		tmplCtx.Data["InteractionData"] = tmplCtx.interacdata
+		tmplCtx.Data["InteractionData"] = tmplCtx.interactiondata
 	}
 
 	csCop := tmplCtx.CurrentFrame.CS
