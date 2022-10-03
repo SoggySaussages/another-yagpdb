@@ -1865,7 +1865,7 @@ func (c *Context) forceError(print string) (string, error) {
 	return "", errors.New(print)
 }
 
-func (s *State) getLocation() (string, error) {
-	location, _ := s.tmpl.ErrorContext(s.node)
+func (c *Context) getLocation() (string, error) {
+	location, _ := state.tmpl.ErrorContext(state.node)
 	return location, nil
 }
