@@ -705,6 +705,10 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	tmplCtx.Data["CCRunCount"] = cmd.RunCount + 1
 	tmplCtx.Data["CCTrigger"] = cmd.TextTrigger
 
+	if slashtrigger {
+		tmplCtx.Data["InteractionData"] = tmplCtx.interacdata
+	}
+
 	csCop := tmplCtx.CurrentFrame.CS
 	f := logger.WithFields(logrus.Fields{
 		"trigger":      cmd.TextTrigger,
