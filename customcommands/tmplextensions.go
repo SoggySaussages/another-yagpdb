@@ -207,7 +207,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 				return "", errors.New("Max nested immediate execCC calls reached (2)")
 			}
 
-			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, nil)
+			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, "")
 			if ctx.Msg != nil {
 				newCtx.Msg = ctx.Msg
 				newCtx.Data["Message"] = ctx.Msg
