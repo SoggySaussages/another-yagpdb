@@ -152,7 +152,7 @@ type Context struct {
 	Msg     *discordgo.Message
 	BotUser *discordgo.User
 
-	interactiondata      string
+	InteractionData      string
 
 	DisabledContextFuncs []string
 	ContextFuncs         map[string]interface{}
@@ -195,7 +195,7 @@ func NewContext(gs *dstate.GuildSet, cs *dstate.ChannelState, ms *dstate.MemberS
 	ctx := &Context{
 		GS: gs,
 		MS: ms,
-		interactiondata: interacdata,
+		InteractionData: interacdata,
 
 		BotUser: common.BotUser,
 
@@ -232,7 +232,7 @@ func (c *Context) setupBaseData() {
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
 	}
 
-	c.Data["InteractionData"] = c.interactiondata
+	c.Data["InteractionData"] = c.InteractionData
 
 	if c.CurrentFrame.CS != nil {
 		channel := CtxChannelFromCS(c.CurrentFrame.CS)
