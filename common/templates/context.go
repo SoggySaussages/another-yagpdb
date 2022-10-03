@@ -31,6 +31,7 @@ var (
 		"str":        ToString,
 		"toString":   ToString, // don't ask why we have 2 of these
 		"toInt":      tmplToInt,
+		"int":        tmplToInt,
 		"toInt64":    ToInt64,
 		"toFloat":    ToFloat64,
 		"toDuration": ToDuration,
@@ -658,6 +659,8 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("getInvites", common.BotSession.GuildInvites)
 	c.addContextFunc("getInvite", common.BotSession.InviteWithCounts)
 	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
+
+	c.addContextFunc("error", c.forceError)
 }
 
 type limitedWriter struct {
