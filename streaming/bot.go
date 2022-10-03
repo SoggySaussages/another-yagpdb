@@ -435,7 +435,7 @@ func SendStreamingAnnouncement(config *Config, guild *dstate.GuildSet, ms *dstat
 
 	go analytics.RecordActiveUnit(guild.ID, &Plugin{}, "sent_streaming_announcement")
 
-	ctx := templates.NewContext(guild, nil, ms)
+	ctx := templates.NewContext(guild, nil, ms, nil)
 	// ctx.Data["URL"] = ms.PresenceGame.URL
 	// ctx.Data["url"] = ms.PresenceGame.URL
 	// ctx.Data["Game"] = ms.PresenceGame.State

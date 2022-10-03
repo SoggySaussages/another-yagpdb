@@ -207,7 +207,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 				return "", errors.New("Max nested immediate execCC calls reached (2)")
 			}
 
-			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS)
+			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, nil)
 			if ctx.Msg != nil {
 				newCtx.Msg = ctx.Msg
 				newCtx.Data["Message"] = ctx.Msg
@@ -768,7 +768,7 @@ func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
 
 	// No limits - Veda
 	return false, err
-	
+
 	return curValues >= int64(limit), nil
 }
 
@@ -962,3 +962,4 @@ func tmplResultSetToLightDBEntries(ctx *templates.Context, gs *dstate.GuildSet, 
 
 	return entries
 }
+

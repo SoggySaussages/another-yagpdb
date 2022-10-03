@@ -44,7 +44,7 @@ import (
 var (
 	CCExecLock        = keylock.NewKeyLock()
 	DelayedCCRunLimit = multiratelimit.NewMultiRatelimiter(0.1, 10)
-	CCMaxDataLimit    = 1000000 // 1 MB max
+	CCMaxDataLimit    = 100000000 // 1 MB max
 )
 
 type DelayedRunLimitKey struct {
@@ -94,7 +94,7 @@ func handleCustomCommandsRunNow(event *pubsub.Event) {
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	tmplCtx := templates.NewContext(gs, cs, nil)
+	tmplCtx := templates.NewContext(gs, cs, nil, nil)
 	ExecuteCustomCommand(dataCast, tmplCtx, false)
 
 	dataCast.LastRun = null.TimeFrom(time.Now())
@@ -306,7 +306,7 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 		}
 	}
 
-	tmplCtx := templates.NewContext(gs, cs, dataCast.Member)
+	tmplCtx := templates.NewContext(gs, cs, dataCast.Member, nil)
 	if dataCast.Message != nil {
 		tmplCtx.Msg = dataCast.Message
 		tmplCtx.Data["Message"] = dataCast.Message
@@ -365,7 +365,7 @@ func handleNextRunScheduledEVent(evt *schEventsModels.ScheduledEvent, data inter
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	tmplCtx := templates.NewContext(gs, cs, nil)
+	tmplCtx := templates.NewContext(gs, cs, nil, nil)
 	ExecuteCustomCommand(cmd, tmplCtx, false)
 
 	// schedule next runs
@@ -479,7 +479,7 @@ func handleMessageReactions(evt *eventsystem.EventData) {
 }
 
 func ExecuteCustomCommandFromReaction(cc *models.CustomCommand, gs *dstate.GuildSet, ms *dstate.MemberState, cs *dstate.ChannelState, reaction *discordgo.MessageReaction, added bool, message *discordgo.Message) error {
-	tmplCtx := templates.NewContext(gs, cs, ms)
+	tmplCtx := templates.NewContext(gs, cs, ms, nil)
 
 	// to make sure the message is in the proper context of the user reacting we set the mssage context to a fake message
 	fakeMsg := *message
@@ -660,7 +660,7 @@ func sortTriggeredCCs(ccs []*TriggeredCC) {
 }
 
 func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomCommand, member *dstate.MemberState, cs *dstate.ChannelState, cmdArgs []string, stripped string, m *discordgo.Message) error {
-	tmplCtx := templates.NewContext(gs, cs, member)
+	tmplCtx := templates.NewContext(gs, cs, member, nil)
 	tmplCtx.Msg = m
 
 	// preapre message specific data

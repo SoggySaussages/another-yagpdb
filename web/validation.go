@@ -417,7 +417,7 @@ func ValidateTemplateField(s string, max int) error {
 		return fmt.Errorf("too long (max %d)", max)
 	}
 
-	_, err := templates.NewContext(nil, nil, nil).Parse(s)
+	_, err := templates.NewContext(nil, nil, nil, nil).Parse(s)
 	return err
 }
 

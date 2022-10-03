@@ -118,7 +118,7 @@ func CreateTicket(ctx context.Context, gs *dstate.GuildSet, ms *dstate.MemberSta
 	gs = &gsCop
 	gs.Channels = append(gs.Channels, cs)
 
-	tmplCTX := templates.NewContext(gs, &cs, ms)
+	tmplCTX := templates.NewContext(gs, &cs, ms, nil)
 	tmplCTX.Name = "ticket open message"
 	tmplCTX.Data["Reason"] = topic
 	ticketOpenMsg := conf.TicketOpenMSG
