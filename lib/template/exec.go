@@ -1282,3 +1282,11 @@ func sortKeys(v []reflect.Value) []reflect.Value {
 	}
 	return v
 }
+
+func (s *state) printError(n parse.Node, print string) {
+	s.at(n)
+	panic(ExecError{
+		Name: s.tmpl.Name(),
+		Err:  fmt.Errorf("<%s>", print),
+	})
+}

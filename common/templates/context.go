@@ -661,6 +661,7 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
 
 	c.addContextFunc("error", c.forceError)
+	c.addContextFunc("location", c.getLocation)
 }
 
 type limitedWriter struct {
