@@ -16,6 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common/scheduledevents2"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
+	"github.com/botlabs-gg/yagpdb/v2/lib/template"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -1858,4 +1859,8 @@ func getLen(from interface{}) int {
 	default:
 		return 0
 	}
+}
+
+func (c *Context) forceError(print string) (string, error) {
+	return nil, errors.New(print)
 }
