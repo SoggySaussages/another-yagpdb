@@ -16,7 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common/scheduledevents2"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
-	"github.com/botlabs-gg/yagpdb/v2/lib/template"
+//	"github.com/botlabs-gg/yagpdb/v2/lib/template"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -1866,6 +1866,6 @@ func (c *Context) forceError(print string) (string, error) {
 }
 
 func (c *Context) getLocation() (string, error) {
-	location, _ := state.tmpl.ErrorContext(state.node)
+	location, _ := bot.State.tmpl.ErrorContext(bot.State.node)
 	return location, nil
 }
