@@ -426,7 +426,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data) (canExecute bool, 
 		if !settings.Enabled {
 			resp = &CanExecuteError{
 				Type:    ReasonCommandDisabaledSettings,
-				Message: "Command is disabled in this channel by server admins",
+				Message: "This command is not available in this channel.",
 			}
 
 			return false, resp, settings, nil

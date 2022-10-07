@@ -16,6 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common/scheduledevents2"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
+//	"github.com/botlabs-gg/yagpdb/v2/lib/template"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -28,8 +29,8 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 
 	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
-	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
-	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
+//	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
+//	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
 	msgSend := &discordgo.MessageSend{
 		AllowedMentions: discordgo.AllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
@@ -38,35 +39,35 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 
 	switch t := s[0].(type) {
 	case *discordgo.MessageEmbed:
-		t.Footer = &discordgo.MessageEmbedFooter{
-			Text:    embedInfo,
-			IconURL: gIcon,
-		}
+//		t.Footer = &discordgo.MessageEmbedFooter{
+//			Text:    embedInfo,
+//			IconURL: gIcon,
+//		}
 		msgSend.Embeds = []*discordgo.MessageEmbed{t}
 	case []*discordgo.MessageEmbed:
 		for _, e := range t {
-			e.Footer = &discordgo.MessageEmbedFooter{
-				Text:    embedInfo,
-				IconURL: gIcon,
-			}
+//			e.Footer = &discordgo.MessageEmbedFooter{
+//				Text:    embedInfo,
+//				IconURL: gIcon,
+//			}
 		}
 	case *discordgo.MessageSend:
 		msgSend = t
 		if len(msgSend.Embeds) > 0 {
 			for _, e := range msgSend.Embeds {
-				e.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: gIcon,
-				}
+//				e.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: gIcon,
+//				}
 			}
 			break
 		}
 		if (strings.TrimSpace(msgSend.Content) == "") && (msgSend.File == nil) {
 			return ""
 		}
-		msgSend.Content = info + "\n" + msgSend.Content
+//		msgSend.Content = info + "\n" + msgSend.Content
 	default:
-		msgSend.Content = fmt.Sprintf("%s\n%s", info, fmt.Sprint(s...))
+		msgSend.Content = fmt.Sprint(s...)  
 	}
 
 	channel, err := common.BotSession.UserChannelCreate(c.MS.User.ID)
@@ -157,9 +158,9 @@ func (c *Context) tmplSendTemplate(channel interface{}, name string, data ...int
 }
 
 func (c *Context) sendNestedTemplate(channel interface{}, dm bool, name string, data ...interface{}) (interface{}, error) {
-	if c.IncreaseCheckCallCounter("exec_child", 3) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("exec_child", 3) {
+//		return "", ErrTooManyCalls
+//	}
 	if name == "" {
 		return "", errors.New("no template name passed")
 	}
@@ -344,11 +345,11 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			return ""
 		}
 
-		isDM := cid != c.ChannelArgNoDM(channel)
-		gName := c.GS.Name
-		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
-		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
-		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//		isDM := cid != c.ChannelArgNoDM(channel)
+//		gName := c.GS.Name
+//		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
+//		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
+//		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
 		var m *discordgo.Message
 		msgSend := &discordgo.MessageSend{
@@ -361,46 +362,46 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		switch typedMsg := msg.(type) {
 		case *discordgo.MessageEmbed:
-			if isDM {
-				typedMsg.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: icon,
-				}
-			}
+//			if isDM {
+//				typedMsg.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: icon,
+//				}
+//			}
 			msgSend.Embeds = []*discordgo.MessageEmbed{typedMsg}
 		case []*discordgo.MessageEmbed:
-			if isDM {
-				for _, e := range typedMsg {
-					e.Footer = &discordgo.MessageEmbedFooter{
-						Text:    embedInfo,
-						IconURL: icon,
-					}
-				}
-			}
+//			if isDM {
+//				for _, e := range typedMsg {
+//					e.Footer = &discordgo.MessageEmbedFooter{
+//						Text:    embedInfo,
+//						IconURL: icon,
+//					}
+//				}
+//			}
 		case *discordgo.MessageSend:
 			msgSend = typedMsg
 			msgSend.AllowedMentions = discordgo.AllowedMentions{Parse: parseMentions, RepliedUser: repliedUser}
-			if isDM {
-				if len(typedMsg.Embeds) > 0 {
-					for _, e := range msgSend.Embeds {
-						e.Footer = &discordgo.MessageEmbedFooter{
-							Text:    embedInfo,
-							IconURL: icon,
-						}
-					}
-				} else {
-					typedMsg.Content = info + "\n" + typedMsg.Content
-				}
-			}
+//			if isDM {
+//				if len(typedMsg.Embeds) > 0 {
+//					for _, e := range msgSend.Embeds {
+//						e.Footer = &discordgo.MessageEmbedFooter{
+//							Text:    embedInfo,
+//							IconURL: icon,
+//						}
+//					}
+//				} else {
+//					typedMsg.Content = info + "\n" + typedMsg.Content
+//				}
+//			}
 			if msgSend.Reference != nil && msgSend.Reference.ChannelID == 0 {
 				msgSend.Reference.ChannelID = cid
 			}
 		default:
-			if isDM {
-				msgSend.Content = info + "\n" + ToString(msg)
-			} else {
+//			if isDM {
+//				msgSend.Content = info + "\n" + ToString(msg)
+//			} else {
 				msgSend.Content = ToString(msg)
-			}
+//			}
 		}
 
 		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
@@ -480,9 +481,9 @@ func (c *Context) tmplEditMessage(filterSpecialMentions bool) func(channel inter
 
 func (c *Context) tmplPinMessage(unpin bool) func(channel, msgID interface{}) (string, error) {
 	return func(channel, msgID interface{}) (string, error) {
-		if c.IncreaseCheckCallCounter("message_pins", 5) {
-			return "", ErrTooManyCalls
-		}
+//		if c.IncreaseCheckCallCounter("message_pins", 5) {
+//			return "", ErrTooManyCalls
+//		}
 
 		cID := c.ChannelArgNoDM(channel)
 		if cID == 0 {
@@ -805,9 +806,9 @@ func (c *Context) tmplSetRoles(target interface{}, input interface{}) (string, e
 		return "", nil
 	}
 
-	if c.IncreaseCheckCallCounter("set_roles"+discordgo.StrID(targetID), 1) {
-		return "", errors.New("too many calls for specific user ID (max 1 / user)")
-	}
+//	if c.IncreaseCheckCallCounter("set_roles"+discordgo.StrID(targetID), 1) {
+//		return "", errors.New("too many calls for specific user ID (max 1 / user)")
+//	}
 
 	rv, _ := indirect(reflect.ValueOf(input))
 	switch rv.Kind() {
@@ -1167,9 +1168,9 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 
 		for _, reaction := range args[3:] {
 
-			if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionRemove(cID, mID, reaction.String(), uID); err != nil {
 				return reflect.Value{}, err
@@ -1205,9 +1206,9 @@ func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.V
 
 		if len(args) > 2 {
 			for _, emoji := range args[2:] {
-				if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-					return reflect.Value{}, ErrTooManyCalls
-				}
+//				if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
+//					return reflect.Value{}, ErrTooManyCalls
+//				}
 
 				if err := common.BotSession.MessageReactionRemoveEmoji(cID, mID, emoji.String()); err != nil {
 					return reflect.Value{}, err
@@ -1357,9 +1358,9 @@ func (c *Context) tmplGetChannelOrThread(channel interface{}) (*CtxChannel, erro
 
 func (c *Context) tmplGetChannelPins(pinCount bool) func(channel interface{}) (interface{}, error) {
 	return func(channel interface{}) (interface{}, error) {
-		if c.IncreaseCheckCallCounterPremium("channel_pins", 2, 4) {
-			return 0, ErrTooManyCalls
-		}
+//		if c.IncreaseCheckCallCounterPremium("channel_pins", 2, 4) {
+//			return 0, ErrTooManyCalls
+//		}
 
 		cID := c.ChannelArgNoDM(channel)
 		if cID == 0 {
@@ -1391,9 +1392,9 @@ func (c *Context) tmplAddReactions(values ...reflect.Value) (reflect.Value, erro
 		}
 
 		for _, reaction := range args {
-			if c.IncreaseCheckCallCounter("add_reaction_trigger", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_trigger", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionAdd(c.Msg.ChannelID, c.Msg.ID, reaction.String()); err != nil {
 				return reflect.Value{}, err
@@ -1408,9 +1409,9 @@ func (c *Context) tmplAddReactions(values ...reflect.Value) (reflect.Value, erro
 func (c *Context) tmplAddResponseReactions(values ...reflect.Value) (reflect.Value, error) {
 	f := func(args []reflect.Value) (reflect.Value, error) {
 		for _, reaction := range args {
-			if c.IncreaseCheckCallCounter("add_reaction_response", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_response", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			c.CurrentFrame.AddResponseReactionNames = append(c.CurrentFrame.AddResponseReactionNames, reaction.String())
 		}
@@ -1447,9 +1448,9 @@ func (c *Context) tmplAddMessageReactions(values ...reflect.Value) (reflect.Valu
 				continue
 			}
 
-			if c.IncreaseCheckCallCounter("add_reaction_message", 20) {
-				return reflect.Value{}, ErrTooManyCalls
-			}
+//			if c.IncreaseCheckCallCounter("add_reaction_message", 20) {
+//				return reflect.Value{}, ErrTooManyCalls
+//			}
 
 			if err := common.BotSession.MessageReactionAdd(cID, mID, reaction.String()); err != nil {
 				return reflect.Value{}, err
@@ -1592,36 +1593,36 @@ func (c *Context) reSplit(r, s string, i ...int) ([]string, error) {
 }
 
 func (c *Context) tmplEditChannelName(channel interface{}, newName string) (string, error) {
-	if c.IncreaseCheckCallCounter("edit_channel", 10) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel", 10) {
+//		return "", ErrTooManyCalls
+//	}
 
 	cID := c.ChannelArgNoDMNoThread(channel)
 	if cID == 0 {
 		return "", errors.New("unknown channel")
 	}
 
-	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	_, err := common.BotSession.ChannelEdit(cID, newName)
 	return "", err
 }
 
 func (c *Context) tmplEditChannelTopic(channel interface{}, newTopic string) (string, error) {
-	if c.IncreaseCheckCallCounter("edit_channel", 10) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel", 10) {
+//		return "", ErrTooManyCalls
+//	}
 
 	cID := c.ChannelArgNoDMNoThread(channel)
 	if cID == 0 {
 		return "", errors.New("unknown channel")
 	}
 
-	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_channel_"+strconv.FormatInt(cID, 10), 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	edit := &discordgo.ChannelEdit{
 		Topic: newTopic,
@@ -1632,9 +1633,9 @@ func (c *Context) tmplEditChannelTopic(channel interface{}, newTopic string) (st
 }
 
 func (c *Context) tmplOnlineCount() (int, error) {
-	if c.IncreaseCheckCallCounter("online_users", 1) {
-		return 0, ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("online_users", 1) {
+//		return 0, ErrTooManyCalls
+//	}
 
 	gwc, err := common.BotSession.GuildWithCounts(c.GS.ID)
 	if err != nil {
@@ -1645,27 +1646,27 @@ func (c *Context) tmplOnlineCount() (int, error) {
 }
 
 // DEPRECATED: this function will likely not return
-func (c *Context) tmplOnlineCountBots() (int, error) {
+func (c *Context) tmplCountBots() (int, error) {
 	// if c.IncreaseCheckCallCounter("online_bots", 1) {
 	// 	return 0, ErrTooManyCalls
 	// }
 
-	// botCount := 0
+	botCount := 0
 
-	// for _, v := range c.GS.Members {
-	// 	if v.Bot && v.PresenceSet && v.PresenceStatus != dstate.StatusOffline {
-	// 		botCount++
+	//for _, v := range c.GS.Members {
+	//	if v.Bot {
+	//		botCount++
 	// 	}
 	// }
 
-	return 0, nil
+	return botCount, nil
 }
 
 func (c *Context) tmplEditNickname(Nickname string) (string, error) {
 
-	if c.IncreaseCheckCallCounter("edit_nick", 2) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounter("edit_nick", 2) {
+//		return "", ErrTooManyCalls
+//	}
 
 	if c.MS == nil {
 		return "", nil
@@ -1686,9 +1687,9 @@ func (c *Context) tmplEditNickname(Nickname string) (string, error) {
 }
 
 func (c *Context) tmplSort(input interface{}, sortargs ...interface{}) (interface{}, error) {
-	if c.IncreaseCheckCallCounterPremium("sortfuncs", 1, 3) {
-		return "", ErrTooManyCalls
-	}
+//	if c.IncreaseCheckCallCounterPremium("sortfuncs", 1, 3) {
+//		return "", ErrTooManyCalls
+//	}
 
 	inputSlice, _ := indirect(reflect.ValueOf(input))
 	switch inputSlice.Kind() {
@@ -1858,4 +1859,13 @@ func getLen(from interface{}) int {
 	default:
 		return 0
 	}
+}
+
+func (c *Context) forceError(print string) (string, error) {
+	return "", errors.New(print)
+}
+
+func (c *Context) getLocation() (string, error) {
+	location, _ := bot.State.tmpl.ErrorContext(bot.State.node)
+	return location, nil
 }

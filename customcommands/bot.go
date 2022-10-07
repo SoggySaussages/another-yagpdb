@@ -44,7 +44,7 @@ import (
 var (
 	CCExecLock        = keylock.NewKeyLock()
 	DelayedCCRunLimit = multiratelimit.NewMultiRatelimiter(0.1, 10)
-	CCMaxDataLimit    = 1000000 // 1 MB max
+	CCMaxDataLimit    = 100000000 // 1 MB max
 )
 
 type DelayedRunLimitKey struct {
@@ -94,8 +94,8 @@ func handleCustomCommandsRunNow(event *pubsub.Event) {
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	tmplCtx := templates.NewContext(gs, cs, nil)
-	ExecuteCustomCommand(dataCast, tmplCtx)
+	tmplCtx := templates.NewContext(gs, cs, nil, "")
+	ExecuteCustomCommand(dataCast, tmplCtx, false)
 
 	dataCast.LastRun = null.TimeFrom(time.Now())
 	err := UpdateCommandNextRunTime(dataCast, true, true)
@@ -306,7 +306,7 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 		}
 	}
 
-	tmplCtx := templates.NewContext(gs, cs, dataCast.Member)
+	tmplCtx := templates.NewContext(gs, cs, dataCast.Member, "")
 	if dataCast.Message != nil {
 		tmplCtx.Msg = dataCast.Message
 		tmplCtx.Data["Message"] = dataCast.Message
@@ -327,7 +327,7 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	err = ExecuteCustomCommand(cmd, tmplCtx)
+	_, err = ExecuteCustomCommand(cmd, tmplCtx, false)
 	return false, err
 }
 
@@ -365,8 +365,8 @@ func handleNextRunScheduledEVent(evt *schEventsModels.ScheduledEvent, data inter
 
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
-	tmplCtx := templates.NewContext(gs, cs, nil)
-	ExecuteCustomCommand(cmd, tmplCtx)
+	tmplCtx := templates.NewContext(gs, cs, nil, "")
+	ExecuteCustomCommand(cmd, tmplCtx, false)
 
 	// schedule next runs
 	cmd.LastRun = cmd.NextRun
@@ -388,13 +388,13 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 		return true
 	}
 
-	if !bot.IsNormalUserMessage(evt.Message) {
-		return true
-	}
+//	if !bot.IsNormalUserMessage(evt.Message) {
+//		return true
+//	}
 
-	if evt.Message.Author.Bot {
-		return true
-	}
+//	if evt.Message.Author.Bot {
+//		return true
+//	}
 
 	if hasPerms, _ := bot.BotHasPermissionGS(gs, cState.ID, discordgo.PermissionSendMessages); !hasPerms {
 		return true
@@ -406,7 +406,7 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 
 const (
 	CCMessageExecLimitNormal  = 3
-	CCMessageExecLimitPremium = 5
+	CCMessageExecLimitPremium = 500
 )
 
 var metricsExecutedCommands = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -479,7 +479,7 @@ func handleMessageReactions(evt *eventsystem.EventData) {
 }
 
 func ExecuteCustomCommandFromReaction(cc *models.CustomCommand, gs *dstate.GuildSet, ms *dstate.MemberState, cs *dstate.ChannelState, reaction *discordgo.MessageReaction, added bool, message *discordgo.Message) error {
-	tmplCtx := templates.NewContext(gs, cs, ms)
+	tmplCtx := templates.NewContext(gs, cs, ms, "")
 
 	// to make sure the message is in the proper context of the user reacting we set the mssage context to a fake message
 	fakeMsg := *message
@@ -492,7 +492,9 @@ func ExecuteCustomCommandFromReaction(cc *models.CustomCommand, gs *dstate.Guild
 	tmplCtx.Data["Message"] = message
 	tmplCtx.Data["ReactionAdded"] = added
 
-	return ExecuteCustomCommand(cc, tmplCtx)
+	_, err := ExecuteCustomCommand(cc, tmplCtx, false)
+
+	return err
 }
 
 func HandleMessageCreate(evt *eventsystem.EventData) {
@@ -658,7 +660,7 @@ func sortTriggeredCCs(ccs []*TriggeredCC) {
 }
 
 func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomCommand, member *dstate.MemberState, cs *dstate.ChannelState, cmdArgs []string, stripped string, m *discordgo.Message) error {
-	tmplCtx := templates.NewContext(gs, cs, member)
+	tmplCtx := templates.NewContext(gs, cs, member, "")
 	tmplCtx.Msg = m
 
 	// preapre message specific data
@@ -678,11 +680,13 @@ func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomComm
 	}
 	tmplCtx.Data["Message"] = m
 
-	return ExecuteCustomCommand(cmd, tmplCtx)
+	_, err := ExecuteCustomCommand(cmd, tmplCtx, false)
+
+	return err
 }
 
 // func ExecuteCustomCommand(cmd *models.CustomCommand, cmdArgs []string, stripped string, s *discordgo.Session, m *discordgo.MessageCreate) (resp string, tmplCtx *templates.Context, err error) {
-func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context) error {
+func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context, slashtrigger bool) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			actualErr := ""
@@ -701,6 +705,10 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	tmplCtx.Data["CCRunCount"] = cmd.RunCount + 1
 	tmplCtx.Data["CCTrigger"] = cmd.TextTrigger
 
+	if slashtrigger {
+		tmplCtx.Data["InteractionData"] = tmplCtx.InteractionData
+	}
+
 	csCop := tmplCtx.CurrentFrame.CS
 	f := logger.WithFields(logrus.Fields{
 		"trigger":      cmd.TextTrigger,
@@ -710,21 +718,21 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	})
 
 	// do not allow concurrent executions of the same custom command, to prevent most common kinds of abuse
-	lockKey := CCExecKey{
-		GuildID: cmd.GuildID,
-		CCID:    cmd.LocalID,
-	}
-	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
-	if lockHandle == -1 {
-		f.Warn("Exceeded max lock attempts for cc")
-		if cmd.ShowErrors {
-			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
-		}
-		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
-		return nil
-	}
-
-	defer CCExecLock.Unlock(lockKey, lockHandle)
+//	lockKey := CCExecKey{
+//		GuildID: cmd.GuildID,
+//		CCID:    cmd.LocalID,
+//	}
+//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
+//	if lockHandle == -1 {
+//		f.Warn("Exceeded max lock attempts for cc")
+//		if cmd.ShowErrors {
+//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
+//		}
+//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
+//		return nil
+//	}
+//
+//	defer CCExecLock.Unlock(lockKey, lockHandle)
 
 	go analytics.RecordActiveUnit(cmd.GuildID, &Plugin{}, "executed_cc")
 
@@ -734,8 +742,11 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	chanMsg := cmd.Responses[rand.Intn(len(cmd.Responses))]
 	out, err := tmplCtx.Execute(chanMsg)
 
+	debugErr := false
+
 	if utf8.RuneCountInString(out) > 2000 {
-		out = "Custom command (#" + discordgo.StrID(cmd.LocalID) + ") response was longer than 2k (contact an admin on the server...)"
+		debugErr = true
+		out = "Command failed (Err Response length " + discordgo.StrID(cmd.LocalID) + "). This error has been reported."
 	}
 
 	go updatePostCommandRan(cmd, err)
@@ -744,16 +755,34 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	if err != nil {
 		logger.WithField("guild", tmplCtx.GS.ID).WithError(err).Error("Error executing custom command")
 		if cmd.ShowErrors {
+			debugErr = true
 			out += "\nAn error caused the execution of the custom command template to stop:\n"
 			out += formatCustomCommandRunErr(chanMsg, err)
 		}
 	}
 
-	_, err = tmplCtx.SendResponse(out)
-	if err != nil {
-		return errors.WithStackIf(err)
+	if debugErr {
+		errCase := rand.Intn(899999)+100000
+		if slashtrigger {
+			out = fmt.Sprintf("**Case Number:** `%d`\n%s", errCase, out)
+			_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
+			return fmt.Sprintf("An error occurred. This has been logged. Check <#1023064061824479242> or <#1019413814548123678> for support.\n`Case number: %d`", errCase), nil
+		}
+		_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
-	return nil
+
+	if !debugErr {
+		if slashtrigger {
+			return out, err
+		} else {
+			_, err = tmplCtx.SendResponse(out)
+		}
+	}
+
+	if err != nil {
+		return "", errors.WithStackIf(err)
+	}
+	return "", err
 }
 
 func formatCustomCommandRunErr(src string, err error) string {
@@ -901,8 +930,8 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 	if cmd.ShowErrors {
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
-
-		common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, out)
+//	Logging in debug channel now -Veda
+		common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
 
 	updatePostCommandRan(cmd, err)

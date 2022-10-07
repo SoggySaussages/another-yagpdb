@@ -683,6 +683,17 @@ func (s *Session) GuildDelete(guildID int64) (st *Guild, err error) {
 	return
 }
 
+func (s *Session) GuildGet(guildID int64) (st *Guild, err error) {
+
+	body, err := s.RequestWithBucketID("GET", EndpointGuild(guildID), nil, nil, EndpointGuild(guildID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
 // GuildLeave leaves a Guild.
 // guildID   : The ID of a Guild
 func (s *Session) GuildLeave(guildID int64) (err error) {
@@ -988,12 +999,13 @@ func (s *Session) GuildChannels(guildID int64) (st []*Channel, err error) {
 // guildID   : The ID of a Guild.
 // name      : Name of the channel (2-100 chars length)
 // ctype     : Type of the channel
-func (s *Session) GuildChannelCreate(guildID int64, name string, ctype ChannelType) (st *Channel, err error) {
+func (s *Session) GuildChannelCreate(guildID int64, name string, ctype ChannelType, parentID int64) (st *Channel, err error) {
 
 	data := struct {
 		Name string      `json:"name"`
 		Type ChannelType `json:"type"`
-	}{name, ctype}
+		Parent int64     `json:"parent_id"`
+	}{name, ctype, parentID}
 
 	body, err := s.RequestWithBucketID("POST", EndpointGuildChannels(guildID), data, nil, EndpointGuildChannels(guildID))
 	if err != nil {
@@ -1499,6 +1511,22 @@ func (s *Session) ChannelDelete(channelID int64) (st *Channel, err error) {
 	return
 }
 
+func (s *Session) ChannelThreadCreate(channelID int64, name string) (st *Channel, err error) {
+
+	data := struct {
+		Name string      `json:"name"`
+		Type ChannelType `json:"type"`
+	}{name, 11}
+
+	body, err := s.RequestWithBucketID("POST", EndpointChannelThreads(channelID), data, nil, EndpointChannelThreads(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
 // ChannelTyping broadcasts to all members that authenticated user is typing in
 // the given channel.
 // channelID  : The ID of a Channel
@@ -1532,6 +1560,28 @@ func (s *Session) ChannelMessages(channelID int64, limit int, beforeID, afterID,
 	if aroundID != 0 {
 		v.Set("around", StrID(aroundID))
 	}
+
+	if len(v) > 0 {
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
+	}
+
+	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointChannelMessages(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+func (s *Session) ChannelLastMessage(channelID int64) (st []*Message, err error) {
+
+	uri := EndpointChannelMessages(channelID)
+
+	v := url.Values{}
+//	if limit > 0 {
+		v.Set("limit", strconv.Itoa(1))
+//	}
 
 	if len(v) > 0 {
 		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
@@ -2735,3 +2785,8 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 	_, err = s.RequestWithBucketID("DELETE", EndpointInteractionFollowupMessage(applicationID, token, messageID), nil, nil, EndpointInteractionFollowupMessage(0, "", 0))
 	return
 }
+
+
+
+// Stuff that is not discordgo :p - Veda
+

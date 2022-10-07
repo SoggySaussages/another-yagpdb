@@ -16,7 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
-	"github.com/botlabs-gg/yagpdb/v2/premium"
+//	"github.com/botlabs-gg/yagpdb/v2/premium"
 	"github.com/botlabs-gg/yagpdb/v2/web"
 	"github.com/karlseguin/ccache"
 	"github.com/mediocregopher/radix/v3"
@@ -31,7 +31,7 @@ var (
 
 // Setting it to 1 Month approx
 const (
-	MinIntervalTriggerDurationMinutes = 5
+	MinIntervalTriggerDurationMinutes = 1
 	MinIntervalTriggerDurationHours   = 1
 	MaxIntervalTriggerDurationHours   = 744
 	MaxIntervalTriggerDurationMinutes = 44640
@@ -163,10 +163,10 @@ func (cc *CustomCommand) Validate(tmpl web.TemplateData) (ok bool) {
 		combinedSize += utf8.RuneCountInString(v)
 	}
 
-	if combinedSize > 10000 {
-		tmpl.AddAlerts(web.ErrorAlert("Max combined command size can be 10k"))
-		return false
-	}
+//	if combinedSize > 10000 {
+//		tmpl.AddAlerts(web.ErrorAlert("Max combined command size can be 10k"))
+//		return false
+//	}
 
 	if cc.TriggerTypeForm == "interval_minutes" && (cc.TimeTriggerInterval < MinIntervalTriggerDurationMinutes || cc.TimeTriggerInterval > MaxIntervalTriggerDurationMinutes) {
 		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Minute interval can be between %v and %v", MinIntervalTriggerDurationMinutes, MaxIntervalTriggerDurationMinutes)))
@@ -380,17 +380,17 @@ func filterEmptyResponses(s string, ss ...string) []string {
 
 const (
 	MaxCommands        = 100
-	MaxCommandsPremium = 250
-	MaxUserMessages    = 20
-	MaxGroups          = 50
+	MaxCommandsPremium = 2500
+	MaxUserMessages    = 200
+	MaxGroups          = 500
 )
 
 func MaxCommandsForContext(ctx context.Context) int {
-	if premium.ContextPremium(ctx) {
+//	if premium.ContextPremium(ctx) {
 		return MaxCommandsPremium
-	}
+//	}
 
-	return MaxCommands
+//	return MaxCommands
 }
 
 var _ featureflags.PluginWithFeatureFlags = (*Plugin)(nil)
