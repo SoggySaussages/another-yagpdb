@@ -27,7 +27,7 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 		return ""
 	}
 
-	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
 //	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
 //	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
@@ -45,21 +45,21 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 //		}
 		msgSend.Embeds = []*discordgo.MessageEmbed{t}
 	case []*discordgo.MessageEmbed:
-		for _, e := range t {
+//		for _, e := range t {
 //			e.Footer = &discordgo.MessageEmbedFooter{
 //				Text:    embedInfo,
 //				IconURL: gIcon,
 //			}
-		}
+//		}
 	case *discordgo.MessageSend:
 		msgSend = t
 		if len(msgSend.Embeds) > 0 {
-			for _, e := range msgSend.Embeds {
+//			for _, e := range msgSend.Embeds {
 //				e.Footer = &discordgo.MessageEmbedFooter{
 //					Text:    embedInfo,
 //					IconURL: gIcon,
 //				}
-			}
+//			}
 			break
 		}
 		if (strings.TrimSpace(msgSend.Content) == "") && (msgSend.File == nil) {
@@ -1865,7 +1865,7 @@ func (c *Context) forceError(print string) (string, error) {
 	return "", errors.New(print)
 }
 
-func (c *Context) getLocation() (string, error) {
-	location, _ := bot.State.tmpl.ErrorContext(bot.State.node)
-	return location, nil
-}
+//func (c *Context) getLocation() (string, error) {
+//	location, _ := bot.State.tmpl.ErrorContext(bot.State.node)
+//	return location, nil
+//}
