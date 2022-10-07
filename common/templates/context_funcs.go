@@ -29,8 +29,8 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 
 	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
-	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
-	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
+//	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
+//	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
 	msgSend := &discordgo.MessageSend{
 		AllowedMentions: discordgo.AllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
@@ -39,35 +39,35 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 
 	switch t := s[0].(type) {
 	case *discordgo.MessageEmbed:
-		t.Footer = &discordgo.MessageEmbedFooter{
-			Text:    embedInfo,
-			IconURL: gIcon,
-		}
+//		t.Footer = &discordgo.MessageEmbedFooter{
+//			Text:    embedInfo,
+//			IconURL: gIcon,
+//		}
 		msgSend.Embeds = []*discordgo.MessageEmbed{t}
 	case []*discordgo.MessageEmbed:
 		for _, e := range t {
-			e.Footer = &discordgo.MessageEmbedFooter{
-				Text:    embedInfo,
-				IconURL: gIcon,
-			}
+//			e.Footer = &discordgo.MessageEmbedFooter{
+//				Text:    embedInfo,
+//				IconURL: gIcon,
+//			}
 		}
 	case *discordgo.MessageSend:
 		msgSend = t
 		if len(msgSend.Embeds) > 0 {
 			for _, e := range msgSend.Embeds {
-				e.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: gIcon,
-				}
+//				e.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: gIcon,
+//				}
 			}
 			break
 		}
 		if (strings.TrimSpace(msgSend.Content) == "") && (msgSend.File == nil) {
 			return ""
 		}
-		msgSend.Content = info + "\n" + msgSend.Content
+//		msgSend.Content = info + "\n" + msgSend.Content
 	default:
-		msgSend.Content = fmt.Sprintf("%s\n%s", info, fmt.Sprint(s...))
+		msgSend.Content = fmt.Sprint(s...)  
 	}
 
 	channel, err := common.BotSession.UserChannelCreate(c.MS.User.ID)
