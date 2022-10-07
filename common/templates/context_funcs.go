@@ -1866,7 +1866,7 @@ func (c *Context) forceError(print string) (string, error) {
 }
 
 func (c *Context) getLocation() (string, error) {
-	s := bot.retState()
+	s := tmpl.retState()
 	location, _ := s.tmpl.ErrorContext(s.node)
 	return location, nil
 }
