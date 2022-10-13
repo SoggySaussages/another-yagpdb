@@ -199,6 +199,127 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 	return embed, nil
 }
 
+//type Interactions struct {
+//	UserID  null.Int64  `json:"user_id"`
+//	Pattern null.String `json:"pattern"`
+//	Reverse bool        `json:"reverse"`
+//}
+
+func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return nil, err
+	}
+
+	cmp := &discordgo.MessageComponent{}
+	buttons := false
+	button1label := false
+	button1id := false
+	button1style := false
+	button2label := false
+	button2id := false
+	button2style := false
+	button3label := false
+	button3id := false
+	button3style := false
+	button4label := false
+	button4id := false
+	button4style := false
+	button5label := false
+	button5id := false
+	button5style := false
+
+	// Default filename
+	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+	for key, val := range messageSdict {
+
+		switch key {
+		case "buttons":
+			buttons = true
+		case "button1label":
+			button1label = ToString(val)
+		case "button1id":
+			button1id = ToString(val)
+		case "button1style":
+			button1style = toInt(val)
+		case "button2label":
+			button2label = ToString(val)
+		case "button2id":
+			button2id = ToString(val)
+		case "button2style":
+			button2style = toInt(val)
+		case "button3label":
+			button3label = ToString(val)
+		case "button3id":
+			button3id = ToString(val)
+		case "button3style":
+			button3style = toInt(val)
+		case "button4label":
+			button4label = ToString(val)
+		case "button4id":
+			button4id = ToString(val)
+		case "button4style":
+			button4style = toInt(val)
+		case "button5label":
+			button5label = ToString(val)
+		case "button5id":
+			button5id = ToString(val)
+		case "button5style":
+			button5style = toInt(val)
+		default:
+			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+		}
+
+	}
+
+//	return msg, nil
+
+if buttons = true {
+	return []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				if button1label != false {
+					discordgo.Button{
+						Label:    button1label,
+						CustomID: button1id,
+						Style:    button1style,
+					},
+				}
+				if button2label != false {
+					discordgo.Button{
+						Label:    button2label,
+						CustomID: button2id,
+						Style:    button2style,
+					},
+				}
+				if button3label != false {
+					discordgo.Button{
+						Label:    button3label,
+						CustomID: button3id,
+						Style:    button3style,
+					},
+				}
+				if button4label != false {
+					discordgo.Button{
+						Label:    button4label,
+						CustomID: button4id,
+						Style:    button4style,
+					},
+				}
+				if button5label != false {
+					discordgo.Button{
+						Label:    button5label,
+						CustomID: button5id,
+						Style:    button5style,
+					},
+				}
+			},
+		},
+	}, nil
+}
+}
+
 func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	if len(values) < 1 {
 		return &discordgo.MessageSend{}, nil
@@ -258,6 +379,8 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
 			filename = common.CutStringShort(ToString(val), 64)
+		case "components":
+			msg.Components = msg.Components + ParseComponents(val)
 		case "reply":
 			msgID := ToInt64(val)
 			if msgID <= 0 {
