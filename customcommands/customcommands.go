@@ -13,7 +13,6 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 	"github.com/sirupsen/logrus"
-	"github.com/volatiletech/sqlboiler/queries/qm"
 
 	"emperror.dev/errors"
 	"github.com/botlabs-gg/yagpdb/v2/common"
@@ -129,10 +128,10 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 			logrus.Error(err)
 			return
 		}
-		gs := State.GetGuild(ic.GuildID)
+		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
-		ms := ic.Member
-		tmplCtx := templates.NewContext(gs, cs, ms, ic)
+		ms := nil
+		tmplCtx := templates.NewContext(gs, cs, ms, templates.toString(ic))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
