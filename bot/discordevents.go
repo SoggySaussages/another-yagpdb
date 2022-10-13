@@ -331,8 +331,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 	}
 	if ic.Type != discordgo.InteractionMessageComponent {
 		return
-	}
-	else {
+	} else {
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
