@@ -329,6 +329,20 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 	if err != nil {
 		logger.WithError(err).Error("failed publishing dm interaction")
 	}
+	if ic.Type = discordgo.InteractionMessageComponent {
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		gs := bot.State.GetGuild(ic.GuildID)
+		cs := gs.GetChannel(ic.ChannelID)
+		ms := ic.Member
+		tmplCtx := templates.NewContext(gs, cs, ms, ic)
+		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
+		return
+	}
+
 }
 
 func HandleMessageCreate(evt *eventsystem.EventData) {
