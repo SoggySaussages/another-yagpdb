@@ -16,7 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common/scheduledevents2"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
-	"github.com/botlabs-gg/yagpdb/v2/lib/template"
+//	"github.com/botlabs-gg/yagpdb/v2/lib/template"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
