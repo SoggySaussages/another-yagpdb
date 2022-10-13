@@ -237,6 +237,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 		switch key {
 		case "buttons":
 			buttons = true
+			_ = val
 		case "button1label":
 			button1label = ToString(val)
 		case "button1id":
