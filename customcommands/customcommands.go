@@ -14,6 +14,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/featureflags"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+	"github.com/botlabs-gg/yagpdb/v2/bot/eventsystem"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 //	"github.com/botlabs-gg/yagpdb/v2/premium"
@@ -101,6 +102,37 @@ const (
 	ReactionModeAddOnly    = 1
 	ReactionModeRemoveOnly = 2
 )
+
+func HandleInteractionCreate(evt *eventsystem.EventData) {
+	ic := evt.InteractionCreate()
+	if ic.GuildID != 0 {
+		return
+	}
+	if ic.User == nil {
+		return
+	}
+
+	if ic.User.ID == common.BotUser.ID {
+		return
+	}
+
+	if ic.Type != discordgo.InteractionMessageComponent {
+		return
+	} else {
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		gs := State.GetGuild(ic.GuildID)
+		cs := gs.GetChannel(ic.ChannelID)
+		ms := ic.Member
+		tmplCtx := templates.NewContext(gs, cs, ms, ic)
+		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
+		return
+	}
+
+}
 
 func (t CommandTriggerType) String() string {
 	return triggerStrings[t]
