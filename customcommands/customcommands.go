@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"strconv"
 	"unicode/utf8"
 
 	"github.com/botlabs-gg/yagpdb/v2/bot"
@@ -130,10 +131,10 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		}
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
-		ms := dstate.MemberState{
+		ms := *dstate.MemberState{
 			GuildID: 0,
 		}
-		tmplCtx := templates.NewContext(gs, cs, ms, templates.toString(ic))
+		tmplCtx := templates.NewContext(gs, cs, ms, string(ic))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
