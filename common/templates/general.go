@@ -209,7 +209,6 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 
 	messageSdict, err := StringKeyDictionary(values...)
 
-	cmp := &discordgo.MessageComponent{}
 	buttons := "false"
 	button1label := "false"
 	button1id := "false"
@@ -265,7 +264,8 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 		case "button5style":
 			button5style = tmplToInt(val)
 		default:
-			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+//			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+			return nil
 		}
 
 	}
@@ -279,32 +279,33 @@ if buttons != "false" {
 					discordgo.Button{
 						Label:    button1label,
 						CustomID: button1id,
-						Style:    button1style,
+						Style:    discordgo.PrimaryButton,
 					},
 					discordgo.Button{
 						Label:    button2label,
 						CustomID: button2id,
-						Style:    button2style,
+						Style:    discordgo.PrimaryButton,
 					},
 					discordgo.Button{
 						Label:    button3label,
 						CustomID: button3id,
-						Style:    button3style,
+						Style:    discordgo.PrimaryButton,
 					},
 					discordgo.Button{
 						Label:    button4label,
 						CustomID: button4id,
-						Style:    button4style,
+						Style:    discordgo.PrimaryButton,
 					},
 					discordgo.Button{
 						Label:    button5label,
 						CustomID: button5id,
-						Style:    button5style,
+						Style:    discordgo.PrimaryButton,
 					},
 			},
 		},
 	}
 }
+return nil
 }
 
 func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
@@ -367,7 +368,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			// Cut the filename to a reasonable length if it's too long
 			filename = common.CutStringShort(ToString(val), 64)
 		case "components":
-			msg.Components = msg.Components + ParseComponents(val)
+			msg.Components = ParseComponents(val)
 		case "reply":
 			msgID := ToInt64(val)
 			if msgID <= 0 {
