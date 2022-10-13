@@ -10,6 +10,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/botlabs-gg/yagpdb/v2/bot"
+	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+	"github.com/sirupsen/logrus"
+	"github.com/volatiletech/sqlboiler/queries/qm"
+
 	"emperror.dev/errors"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/featureflags"
@@ -128,7 +133,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := ic.Member
 		tmplCtx := templates.NewContext(gs, cs, ms, ic)
-		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
+		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
 
