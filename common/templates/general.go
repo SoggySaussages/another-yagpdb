@@ -237,32 +237,32 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button1label = ToString(val)
 		case "button1id":
 			button1id = ToString(val)
-		case "button1style":
-			button1style = tmplToInt(val)
+//		case "button1style":
+//			button1style = tmplToInt(val)
 		case "button2label":
 			button2label = ToString(val)
 		case "button2id":
 			button2id = ToString(val)
-		case "button2style":
-			button2style = tmplToInt(val)
+//		case "button2style":
+//			button2style = tmplToInt(val)
 		case "button3label":
 			button3label = ToString(val)
 		case "button3id":
 			button3id = ToString(val)
-		case "button3style":
-			button3style = tmplToInt(val)
+//		case "button3style":
+//			button3style = tmplToInt(val)
 		case "button4label":
 			button4label = ToString(val)
 		case "button4id":
 			button4id = ToString(val)
-		case "button4style":
-			button4style = tmplToInt(val)
+//		case "button4style":
+//			button4style = tmplToInt(val)
 		case "button5label":
 			button5label = ToString(val)
 		case "button5id":
 			button5id = ToString(val)
-		case "button5style":
-			button5style = tmplToInt(val)
+//		case "button5style":
+//			button5style = tmplToInt(val)
 		default:
 //			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
 			return nil
