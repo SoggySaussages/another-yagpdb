@@ -4,6 +4,13 @@ import (
 	"runtime/debug"
 	"sync/atomic"
 	"time"
+	"context"
+
+	"github.com/botlabs-gg/yagpdb/v2/bot"
+	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+	"github.com/botlabs-gg/yagpdb/v2/customcommands"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 
 	"emperror.dev/errors"
 	"github.com/botlabs-gg/yagpdb/v2/bot/eventsystem"
