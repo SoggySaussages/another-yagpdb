@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"strconv"
 	"unicode/utf8"
 
 	"github.com/botlabs-gg/yagpdb/v2/bot"
