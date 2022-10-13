@@ -6,7 +6,6 @@ import (
 	"time"
 	"context"
 
-	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
@@ -344,7 +343,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 			logrus.Error(err)
 			return
 		}
-		gs := bot.State.GetGuild(ic.GuildID)
+		gs := State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := ic.Member
 		tmplCtx := templates.NewContext(gs, cs, ms, ic)
