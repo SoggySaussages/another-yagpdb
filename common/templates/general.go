@@ -236,8 +236,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 
 		switch key {
 		case "buttons":
-			buttons = true
-			_ = val
+			buttons = ToString(val)
 		case "button1label":
 			button1label = ToString(val)
 		case "button1id":
@@ -276,7 +275,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 
 //	return msg, nil
 
-if buttons = true {
+if buttons =! false {
 	return []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
