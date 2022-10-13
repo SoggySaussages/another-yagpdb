@@ -208,27 +208,24 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 
 	messageSdict, err := StringKeyDictionary(values...)
-	if err != nil {
-		return nil, err
-	}
 
 	cmp := &discordgo.MessageComponent{}
 	buttons := "false"
 	button1label := "false"
 	button1id := "false"
-	button1style := "false"
+	button1style := 1
 	button2label := "false"
 	button2id := "false"
-	button2style := "false"
+	button2style := 1
 	button3label := "false"
 	button3id := "false"
-	button3style := "false"
+	button3style := 1
 	button4label := "false"
 	button4id := "false"
-	button4style := "false"
+	button4style := 1
 	button5label := "false"
 	button5id := "false"
-	button5style := "false"
+	button5style := 1
 
 	// Default filename
 	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
@@ -306,7 +303,7 @@ if buttons != "false" {
 					},
 			},
 		},
-	}, nil
+	}
 }
 }
 
