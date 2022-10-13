@@ -130,7 +130,9 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		}
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
-		ms := nil
+		ms := dstate.MemberState{
+			GuildID: 0,
+		}
 		tmplCtx := templates.NewContext(gs, cs, ms, templates.toString(ic))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
