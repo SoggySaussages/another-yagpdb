@@ -279,41 +279,31 @@ if buttons = true {
 	return []discordgo.MessageComponent{
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
-				if button1label != false {
 					discordgo.Button{
 						Label:    button1label,
 						CustomID: button1id,
 						Style:    button1style,
 					},
-				}
-				if button2label != false {
 					discordgo.Button{
 						Label:    button2label,
 						CustomID: button2id,
 						Style:    button2style,
 					},
-				}
-				if button3label != false {
 					discordgo.Button{
 						Label:    button3label,
 						CustomID: button3id,
 						Style:    button3style,
 					},
-				}
-				if button4label != false {
 					discordgo.Button{
 						Label:    button4label,
 						CustomID: button4id,
 						Style:    button4style,
 					},
-				}
-				if button5label != false {
 					discordgo.Button{
 						Label:    button5label,
 						CustomID: button5id,
 						Style:    button5style,
 					},
-				}
 			},
 		},
 	}, nil
