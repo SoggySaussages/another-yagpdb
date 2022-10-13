@@ -207,7 +207,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 
 func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 
-	messageSdict, err := StringKeyDictionary(values...)
+	messageSdict, _ := StringKeyDictionary(values...)
 
 	buttons := "false"
 	button1label := "false"
