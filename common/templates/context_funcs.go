@@ -1866,8 +1866,9 @@ func (c *Context) forceError(print string) (string, error) {
 }
 
 func (c *Context) getLocation() (string, error) {
-//	s := s.retState()
-//	location, _ := s.tmpl.ErrorContext(s.node)
-//	return location, nil
+	template.UncatchableError("error")
+	s := template.retState()
+	location, _ := s.tmpl.ErrorContext(s.node)
+	return location, nil
 return "deprecated", nil
 }
