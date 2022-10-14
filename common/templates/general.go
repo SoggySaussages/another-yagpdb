@@ -439,7 +439,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		case "components":
 			data.Components = ParseComponents(val)
 		case "flags":
-			data.Flags = response.Data = &discordgo.InteractionResponseData{Flags: int64(tmplToInt(val))}
+			data.Flags = uint64(tmplToInt(val))
 		case "id":
 			id = int64(tmplToInt(val))
 		case "token":
