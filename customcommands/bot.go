@@ -71,7 +71,7 @@ func (p *Plugin) BotInit() {
 		logger.Debug("Handler recieved InteractionCreate")
 		ic := evt.EvtInterface.(*discordgo.InteractionCreate)
 		if ic.GuildID == 0 {
-			logrus.Error("Aborting: 74")
+			logger.Error("Aborting")
 			return
 		}
 		go HandleInteractionCreate(ic)
@@ -82,7 +82,7 @@ func (p *Plugin) BotInit() {
 		dataCast := evt.Data.(*discordgo.InteractionCreate)
 //		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
 		if dataCast.Type == discordgo.InteractionApplicationCommand {
-			logrus.Error("Aborting: 85")
+			logger.Error("Aborting")
 			return
 		}
 		go HandleInteractionCreate(dataCast)
@@ -99,13 +99,13 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 //		logrus.Error("Aborting: 99")
 //		return
 //	}
-	if ic.User == nil {
-		logrus.Error("Aborting: 103")
+	if ic.Member == nil {
+		logger.Error("Aborting")
 		return
 	}
 
-	if ic.User.ID == common.BotUser.ID {
-		logrus.Error("Aborting: 108")
+	if ic.Member.User.ID == common.BotUser.ID {
+		logger.Error("Aborting")
 		return
 	}
 	logger.Debug("HandleInteractionCreate checks passed")
@@ -119,7 +119,7 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d", 1, ic.MessageComponentData().CustomID, ic.Message.ID))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%s,%d", 1, ic.MessageComponentData().CustomID, ic.Token, ic.Message.ID))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
@@ -136,7 +136,7 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%s,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Message.ID, ic.Token, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
