@@ -226,7 +226,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 	button5id := "false"
 //	button5style := 1
 
-	comp := []discordgo.ActionsRow{}
+	comp := []discordgo.Button{}
 
 	// Default filename
 	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
@@ -307,7 +307,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 if buttons != "false" {
 	return []discordgo.MessageComponent{
 		discordgo.ActionsRow{
-			Components: comp,
+			Components: []discordgo.ActionsRow{comp},
 		},
 	}
 }
