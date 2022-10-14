@@ -439,9 +439,9 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		case "components":
 			data.Components = ParseComponents(val)
 		case "flags":
-			data.Flags = int64(toString(val))
+			data.Flags = int64(ToString(val))
 		case "id":
-			id = int64(toString(val))
+			id = int64(ToString(val))
 		case "token":
 			token = ToString(val)
 		default:
@@ -470,7 +470,7 @@ func CreateModal(values ...interface{}) error {
 		return err
 	}
 
-	customID = ""
+	customID := ""
 	id := 0
 	token := ""
 	title := ""
@@ -488,7 +488,7 @@ func CreateModal(values ...interface{}) error {
 		case "label":
 			label = ToString(val)
 		case "id":
-			id = int64(toString(val))
+			id = int64(ToString(val))
 		case "token":
 			token = ToString(val)
 		default:
