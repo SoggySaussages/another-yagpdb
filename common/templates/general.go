@@ -239,7 +239,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button1label = ToString(val)
 		case "button1id":
 			button1id = ToString(val)
-			comp.Components = append(comp.Components,
+			comp = append(comp,
 				discordgo.Button{
 					Label:    button1label,
 					CustomID: button1id,
@@ -251,7 +251,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button2label = ToString(val)
 		case "button2id":
 			button2id = ToString(val)
-			comp.Components = append(comp.Components,
+			comp = append(comp,
 				discordgo.Button{
 					Label:    button2label,
 					CustomID: button2id,
@@ -263,7 +263,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button3label = ToString(val)
 		case "button3id":
 			button3id = ToString(val)
-			comp.Components = append(comp.Components, 
+			comp = append(comp, 
 				discordgo.Button{
 					Label:    button3label,
 					CustomID: button3id,
@@ -275,7 +275,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button4label = ToString(val)
 		case "button4id":
 			button4id = ToString(val)
-			comp.Components = append(comp.Components,
+			comp = append(comp,
 				discordgo.Button{
 					Label:    button4label,
 					CustomID: button4id,
@@ -287,7 +287,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button5label = ToString(val)
 		case "button5id":
 			button5id = ToString(val)
-			comp.Components = append(comp.Components,
+			comp = append(comp,
 				discordgo.Button{
 					Label:    button5label,
 					CustomID: button5id,
