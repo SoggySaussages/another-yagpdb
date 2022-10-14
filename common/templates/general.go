@@ -405,7 +405,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	}
 
 	data := &discordgo.InteractionResponseData{}
-	id := 0
+	id := int64(0)
 	token := ""
 
 	// Default filename
@@ -439,9 +439,9 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		case "components":
 			data.Components = ParseComponents(val)
 		case "flags":
-			data.Flags = int64(ToString(val))
+			data.Flags = int64(tmplToInt(val))
 		case "id":
-			id = int64(ToString(val))
+			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
 		default:
@@ -471,7 +471,7 @@ func CreateModal(values ...interface{}) error {
 	}
 
 	customID := ""
-	id := 0
+	id := int64(0)
 	token := ""
 	title := ""
 	label := ""
@@ -488,7 +488,7 @@ func CreateModal(values ...interface{}) error {
 		case "label":
 			label = ToString(val)
 		case "id":
-			id = int64(ToString(val))
+			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
 		default:
