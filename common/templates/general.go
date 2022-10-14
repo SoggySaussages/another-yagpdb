@@ -390,6 +390,135 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	return msg, nil
 }
 
+func CreateInteractionResponseSend(values ...interface{}) error {
+	if len(values) < 1 {
+		return &discordgo.MessageSend{}, nil
+	}
+
+	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+		return m, nil
+	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &discordgo.InteractionResponseData{}
+	id := nil
+	token := nil
+
+	// Default filename
+	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+	for key, val := range messageSdict {
+
+		switch key {
+		case "content":
+			data.Content = ToString(val)
+		case "embed":
+			if val == nil {
+				continue
+			}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxEmbeds = 10 // Discord limitation
+				for i := 0; i < v.Len() && i < maxEmbeds; i++ {
+					embed, err := CreateEmbed(v.Index(i).Interface())
+					if err != nil {
+						return err
+					}
+					data.Embeds = append(data.Embeds, embed)
+				}
+			} else {
+				embed, err := CreateEmbed(val)
+				if err != nil {
+					return err
+				}
+				data.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			data.Components = ParseComponents(val)
+		case "flags":
+			data.Flags = int64(val)
+		case "id":
+			id = int64(val)
+		case "token":
+			token = ToString(val)
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: data,
+	})
+	return
+}
+
+func CreateModal(values ...interface{}) error {
+	if len(values) < 1 {
+		return &discordgo.MessageSend{}, nil
+	}
+
+	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+		return m, nil
+	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return nil, err
+	}
+
+	customID = nil
+	id := nil
+	token := nil
+	title := nil
+	label := nil
+
+	// Default filename
+	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+	for key, val := range messageSdict {
+
+		switch key {
+		case "customID":
+			customID = ToString(val)
+		case "title":
+			title = ToString(val)
+		case "label":
+			label = ToString(val)
+		case "id":
+			id = int64(val)
+		case "token":
+			token = ToString(val)
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseModal,
+		Data: &discordgo.InteractionResponseData{
+			CustomID: customID,
+			Title:    title,
+			Components: []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.TextInput{
+							CustomID:  customID,
+							Label:     label,
+							Style:     discordgo.TextInputShort,
+							Required:  true,
+							MaxLength: 200,
+						},
+					},
+				},
+			},
+		},
+	})
+	return
+}
+
 func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 	if len(values) < 1 {
 		return &discordgo.MessageEdit{}, nil
