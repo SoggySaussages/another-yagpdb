@@ -307,7 +307,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 if buttons != "false" {
 	return []discordgo.MessageComponent{
 		discordgo.ActionsRow{
-			Components: []discordgo.ActionsRow{comp},
+			Components: comp,
 		},
 	}
 }
