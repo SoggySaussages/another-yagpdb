@@ -392,21 +392,21 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 
 func CreateInteractionResponseSend(values ...interface{}) error {
 	if len(values) < 1 {
-		return &discordgo.MessageSend{}, nil
+		return nil
 	}
 
 	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
-		return m, nil
+		return nil
 	}
 
 	messageSdict, err := StringKeyDictionary(values...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	data := &discordgo.InteractionResponseData{}
-	id := nil
-	token := nil
+	id := 0
+	token := ""
 
 	// Default filename
 	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
@@ -439,9 +439,9 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		case "components":
 			data.Components = ParseComponents(val)
 		case "flags":
-			data.Flags = int64(val)
+			data.Flags = int64(toString(val))
 		case "id":
-			id = int64(val)
+			id = int64(toString(val))
 		case "token":
 			token = ToString(val)
 		default:
@@ -453,28 +453,28 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
-	return
+	return nil
 }
 
 func CreateModal(values ...interface{}) error {
 	if len(values) < 1 {
-		return &discordgo.MessageSend{}, nil
+		return nil
 	}
 
 	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
-		return m, nil
+		return nil
 	}
 
 	messageSdict, err := StringKeyDictionary(values...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	customID = nil
-	id := nil
-	token := nil
-	title := nil
-	label := nil
+	customID = ""
+	id := 0
+	token := ""
+	title := ""
+	label := ""
 
 	// Default filename
 	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
@@ -488,7 +488,7 @@ func CreateModal(values ...interface{}) error {
 		case "label":
 			label = ToString(val)
 		case "id":
-			id = int64(val)
+			id = int64(toString(val))
 		case "token":
 			token = ToString(val)
 		default:
@@ -516,7 +516,7 @@ func CreateModal(values ...interface{}) error {
 			},
 		},
 	})
-	return
+	return nil
 }
 
 func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {

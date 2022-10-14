@@ -95,6 +95,8 @@ var (
 		"complexMessage":     CreateMessageSend,
 		"complexMessageEdit": CreateMessageEdit,
 		"kindOf":             KindOf,
+		"respond":            CreateInteractionResponseSend,
+		"modal":              CreateModal,
 
 		"adjective":   common.RandomAdjective,
 		"in":          in,
