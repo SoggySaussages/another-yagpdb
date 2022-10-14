@@ -244,7 +244,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 					Label:    button1label,
 					CustomID: button1id,
 					Style:    discordgo.PrimaryButton,
-				})
+				},)
 //		case "button1style":
 //			button1style = tmplToInt(val)
 		case "button2label":
@@ -256,7 +256,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 					Label:    button2label,
 					CustomID: button2id,
 					Style:    discordgo.PrimaryButton,
-				})
+				},)
 //		case "button2style":
 //			button2style = tmplToInt(val)
 		case "button3label":
@@ -268,7 +268,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 					Label:    button3label,
 					CustomID: button3id,
 					Style:    discordgo.PrimaryButton,
-				})
+				},)
 //		case "button3style":
 //			button3style = tmplToInt(val)
 		case "button4label":
@@ -280,7 +280,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 					Label:    button4label,
 					CustomID: button4id,
 					Style:    discordgo.PrimaryButton,
-				})
+				},)
 //		case "button4style":
 //			button4style = tmplToInt(val)
 		case "button5label":
@@ -292,7 +292,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 					Label:    button5label,
 					CustomID: button5id,
 					Style:    discordgo.PrimaryButton,
-				})
+				},)
 //		case "button5style":
 //			button5style = tmplToInt(val)
 		default:
