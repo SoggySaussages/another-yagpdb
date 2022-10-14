@@ -226,7 +226,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 	button5id := "false"
 //	button5style := 1
 
-	comp := &discordgo.ActionsRow{}
+	comp := []discordgo.ActionsRow{}
 
 	// Default filename
 	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
@@ -239,60 +239,60 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 			button1label = ToString(val)
 		case "button1id":
 			button1id = ToString(val)
-			comp.Components = append(comp.Components, &discordgo.MessageComponent{
+			comp.Components = append(comp.Components,
 				discordgo.Button{
 					Label:    button1label,
 					CustomID: button1id,
 					Style:    discordgo.PrimaryButton,
-				}})
+				})
 //		case "button1style":
 //			button1style = tmplToInt(val)
 		case "button2label":
 			button2label = ToString(val)
 		case "button2id":
 			button2id = ToString(val)
-			comp.Components = append(comp.Components, &discordgo.MessageComponent{
+			comp.Components = append(comp.Components,
 				discordgo.Button{
 					Label:    button2label,
 					CustomID: button2id,
 					Style:    discordgo.PrimaryButton,
-				}})
+				})
 //		case "button2style":
 //			button2style = tmplToInt(val)
 		case "button3label":
 			button3label = ToString(val)
 		case "button3id":
 			button3id = ToString(val)
-			comp.Components = append(comp.Components, &discordgo.MessageComponent{
+			comp.Components = append(comp.Components, 
 				discordgo.Button{
 					Label:    button3label,
 					CustomID: button3id,
 					Style:    discordgo.PrimaryButton,
-				}})
+				})
 //		case "button3style":
 //			button3style = tmplToInt(val)
 		case "button4label":
 			button4label = ToString(val)
 		case "button4id":
 			button4id = ToString(val)
-			comp.Components = append(comp.Components, &discordgo.MessageComponent{
+			comp.Components = append(comp.Components,
 				discordgo.Button{
 					Label:    button4label,
 					CustomID: button4id,
 					Style:    discordgo.PrimaryButton,
-				}})
+				})
 //		case "button4style":
 //			button4style = tmplToInt(val)
 		case "button5label":
 			button5label = ToString(val)
 		case "button5id":
 			button5id = ToString(val)
-			comp.Components = append(comp.Components, &discordgo.MessageComponent{
+			comp.Components = append(comp.Components,
 				discordgo.Button{
 					Label:    button5label,
 					CustomID: button5id,
 					Style:    discordgo.PrimaryButton,
-				}})
+				})
 //		case "button5style":
 //			button5style = tmplToInt(val)
 		default:
@@ -305,7 +305,10 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 //	return msg, nil
 //msg.Embeds = append(msg.Embeds, embed)
 if buttons != "false" {
-	return []discordgo.MessageComponent{comp,
+	return []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: comp,
+		},
 	}
 }
 return nil
