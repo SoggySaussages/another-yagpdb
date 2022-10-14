@@ -53,6 +53,29 @@ func RegisterPlugin() {
 	common.RegisterPlugin(plugin)
 }
 
+var (
+	_ bot.BotInitHandler         = (*Plugin)(nil)
+)
+
+func (p *Plugin) BotInit() {
+	eventsystem.AddHandlerAsyncLastLegacy(p, func(evt *eventsystem.EventData) {
+		ic := evt.EvtInterface.(*discordgo.InteractionCreate)
+		if ic.GuildID == 0 {
+			return
+		}
+		go HandleInteractionCreate(ic)
+	}, eventsystem.EventInteractionCreate)
+
+	pubsub.AddHandler("dm_interaction", func(evt *pubsub.Event) {
+		dataCast := evt.Data.(*discordgo.InteractionCreate)
+//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
+		if dataCast.Type == discordgo.InteractionApplicationCommand {
+			return
+		}
+		go HandleInteractionCreate(dataCast)
+	}, discordgo.InteractionCreate{})
+}
+
 func (p *Plugin) PluginInfo() *common.PluginInfo {
 	return &common.PluginInfo{
 		Name:     "Custom Commands",
@@ -120,9 +143,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		return
 	}
 
-	if ic.Type != discordgo.InteractionMessageComponent {
-		return
-	} else {
+	if ic.Type == discordgo.InteractionMessageComponent {
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
@@ -131,7 +152,21 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d", ic.MessageComponentData().CustomID, ic.Message.ID))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d", 1 ic.MessageComponentData().CustomID, ic.Message.ID))
+		ExecuteCustomCommand(cmd, tmplCtx, true)
+		return
+	}
+
+	if ic.Type == discordgo.InteractionModalSubmit {
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		gs := bot.State.GetGuild(ic.GuildID)
+		cs := gs.GetChannel(ic.ChannelID)
+		ms := dstate.MemberStateFromMember(ic.Member)
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d,%s", 2 ic.ModalSubmitData().CustomID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
