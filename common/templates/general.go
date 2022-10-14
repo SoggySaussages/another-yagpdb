@@ -395,9 +395,9 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		return nil
 	}
 
-	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
-		return nil
-	}
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
 
 	messageSdict, err := StringKeyDictionary(values...)
 	if err != nil {
@@ -408,8 +408,6 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	id := int64(0)
 	token := ""
 
-	// Default filename
-	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 	for key, val := range messageSdict {
 
 		switch key {
@@ -461,9 +459,9 @@ func CreateModal(values ...interface{}) error {
 		return nil
 	}
 
-	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
-		return nil
-	}
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
 
 	messageSdict, err := StringKeyDictionary(values...)
 	if err != nil {
@@ -476,8 +474,6 @@ func CreateModal(values ...interface{}) error {
 	title := ""
 	label := ""
 
-	// Default filename
-	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 	for key, val := range messageSdict {
 
 		switch key {
