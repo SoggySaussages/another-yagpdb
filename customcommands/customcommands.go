@@ -152,7 +152,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d", 1 ic.MessageComponentData().CustomID, ic.Message.ID))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d", 1, ic.MessageComponentData().CustomID, ic.Message.ID))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
@@ -166,7 +166,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d,%s", 2 ic.ModalSubmitData().CustomID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		return
 	}
