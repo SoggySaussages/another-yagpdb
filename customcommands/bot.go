@@ -68,14 +68,14 @@ func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleMessageCreate), eventsystem.EventMessageCreate)
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(handleMessageReactions), eventsystem.EventMessageReactionAdd, eventsystem.EventMessageReactionRemove)
 	eventsystem.AddHandlerAsyncLastLegacy(p, func(evt *eventsystem.EventData) {
-		logrus.Debug("Handler recieved InteractionCreate")
+		logger.Debug("Handler recieved InteractionCreate")
 		ic := evt.EvtInterface.(*discordgo.InteractionCreate)
 		if ic.GuildID == 0 {
 			logrus.Error("Aborting: 74")
 			return
 		}
 		go HandleInteractionCreate(ic)
-		logrus.Debug("Handler executed HandleInteractionCreate")
+		logger.Debug("Handler executed HandleInteractionCreate")
 	}, eventsystem.EventInteractionCreate)
 
 	pubsub.AddHandler("dm_interaction", func(evt *pubsub.Event) {
@@ -93,12 +93,12 @@ func (p *Plugin) BotInit() {
 }
 
 func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
-	logrus.Debug("HandleInteractionCreate triggered")
+	logger.Debug("HandleInteractionCreate triggered")
 //	ic := evt.InteractionCreate()
-	if ic.GuildID != 0 {
-		logrus.Error("Aborting: 99")
-		return
-	}
+//	if ic.GuildID != 0 {
+//		logrus.Error("Aborting: 99")
+//		return
+//	}
 	if ic.User == nil {
 		logrus.Error("Aborting: 103")
 		return
@@ -108,9 +108,9 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		logrus.Error("Aborting: 108")
 		return
 	}
-	logrus.Debug("HandleInteractionCreate checks passed")
+	logger.Debug("HandleInteractionCreate checks passed")
 	if ic.Type == discordgo.InteractionMessageComponent {
-		logrus.Debug("InteractionMessageComponent execution begun")
+		logger.Debug("InteractionMessageComponent execution begun")
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
@@ -120,14 +120,14 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
 		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d", 1, ic.MessageComponentData().CustomID, ic.Message.ID))
-		logrus.Debug("Executing custom command, standby...")
+		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
-		logrus.Debug("Custom command executed")
+		logger.Debug("Custom command executed")
 		return
 	}
 
 	if ic.Type == discordgo.InteractionModalSubmit {
-		logrus.Debug("InteractionModalSubmit execution begun")
+		logger.Debug("InteractionModalSubmit execution begun")
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
@@ -137,12 +137,12 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
 		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
-		logrus.Debug("Executing custom command, standby...")
+		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
-		logrus.Debug("Custom command executed")
+		logger.Debug("Custom command executed")
 		return
 	}
-	logrus.Debug("HandleInteractionCreate completed")
+	logger.Debug("HandleInteractionCreate completed")
 }
 
 func handleCustomCommandsRunNow(event *pubsub.Event) {
