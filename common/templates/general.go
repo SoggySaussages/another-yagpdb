@@ -226,7 +226,7 @@ func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
 	button5id := "false"
 //	button5style := 1
 
-	comp := []discordgo.Button{}
+	comp := []discordgo.MessageComponent{}
 
 	// Default filename
 	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
