@@ -207,7 +207,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 
 func ParseButton(values ...interface{}) ([]discordgo.MessageComponent, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
-	b := []discordgo.MessageComponent{}
+	b := discordgo.Button{}
 
 	for key, val := range messageSdict {
 		
@@ -239,7 +239,7 @@ func ParseButton(values ...interface{}) ([]discordgo.MessageComponent, error) {
 				}
 		
 			}
-			return b, nil
+			return []discordgo.MessageComponent{b}, nil
 }
 
 func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error) {
@@ -263,7 +263,7 @@ func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error
 			return e, nil
 }
 
-func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
+func ParseTextField(values ...interface{}) ([]discordgo.MessageComponent, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	t := discordgo.TextInput{}
 
@@ -293,7 +293,7 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 				}
 		
 			}
-			return t, nil
+			return []discordgo.MessageComponent{t}, nil
 }
 
 //func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
