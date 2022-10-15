@@ -278,6 +278,8 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 					}
 				case "label":
 					t.Label = ToString(val)
+				case "customID":
+					t.CustomID = ToString(val)
 				case "value":
 					t.Value = ToString(val)
 				case "placeholder":
