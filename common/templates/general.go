@@ -205,7 +205,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //	Reverse bool        `json:"reverse"`
 //}
 
-func ParseButton(values ...interface{}) ([]discordgo.MessageComponent, error) {
+func ParseButton(values ...interface{}) (discordgo.Button{}, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.Button{}
 
@@ -235,11 +235,11 @@ func ParseButton(values ...interface{}) ([]discordgo.MessageComponent, error) {
 				case "emoji":
 					b.Emoji, _ = ParseComponentEmoji(val)
 				default:
-					return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
 				}
 		
 			}
-			return []discordgo.MessageComponent{b}, nil
+			return b, nil
 }
 
 func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error) {
@@ -256,14 +256,14 @@ func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error
 				case "animated":
 					e.Animated = true
 				default:
-					return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+					return e, errors.New(`invalid key "` + key + `" passed to message component builder`)
 				}
 		
 			}
 			return e, nil
 }
 
-func ParseTextField(values ...interface{}) ([]discordgo.MessageComponent, error) {
+func ParseTextField(values ...interface{}) (discordgo.TextInput{}, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	t := discordgo.TextInput{}
 
@@ -293,7 +293,7 @@ func ParseTextField(values ...interface{}) ([]discordgo.MessageComponent, error)
 				}
 		
 			}
-			return []discordgo.MessageComponent{t}, nil
+			return t, nil
 }
 
 //func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
@@ -470,7 +470,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.Button{}
+					actionRow := []discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
@@ -483,7 +483,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 						}
 					}
 						
-					msg.Components = append(msg.Components, discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					msg.Components = append(msg.Components, *discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "reply":
@@ -570,7 +570,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 						}
 					}
 						
-					data.Components = append(msg.Components, discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					data.Components = append(data.Components, *discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "flags":
@@ -626,13 +626,13 @@ func CreateModal(values ...interface{}) error {
 			token = ToString(val)
 		case "fields":
 			components := []discordgo.MessageComponent{}
-					v2, _ := indirect(reflect.ValueOf(v))
-					if v2.Kind() == reflect.Slice {
+					v, _ := indirect(reflect.ValueOf(val))
+					if v.Kind() == reflect.Slice {
 						const maxFields = 5 // Discord limitation
-						for i := 0; i < v2.Len() && i < maxFields; i++ {
-							field, err := ParseTextField(v2.Index(i).Interface())
+						for i := 0; i < v.Len() && i < maxFields; i++ {
+							field, err := ParseTextField(v.Index(i).Interface())
 							if err != nil {
-								return nil, err
+								return err
 							}
 							components = append(components, field)
 						}
