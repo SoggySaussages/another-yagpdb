@@ -483,7 +483,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 						}
 					}
 						
-					msg.Components = append(msg.Components, *discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					msg.Components = append(msg.Components, []discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "reply":
@@ -570,7 +570,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 						}
 					}
 						
-					data.Components = append(data.Components, *discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					data.Components = append(data.Components, []discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "flags":
@@ -610,6 +610,7 @@ func CreateModal(values ...interface{}) error {
 	token := ""
 	title := ""
 	label := ""
+	components := []discordgo.MessageComponent{}
 
 	for key, val := range messageSdict {
 
@@ -625,7 +626,6 @@ func CreateModal(values ...interface{}) error {
 		case "token":
 			token = ToString(val)
 		case "fields":
-			components := []discordgo.MessageComponent{}
 					v, _ := indirect(reflect.ValueOf(val))
 					if v.Kind() == reflect.Slice {
 						const maxFields = 5 // Discord limitation
