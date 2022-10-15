@@ -473,11 +473,11 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
 					actionRow := []discordgo.MessageComponent{}
-					v2, _ := indirect(reflect.ValueOf(v))
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
-						for i := 0; i < v2.Len() && i < maxButtons; i++ {
-							button, err := ParseButton(v2.Index(i).Interface())
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							button, err := ParseButton(v2.Index(i2).Interface())
 							if err != nil {
 								return msg, err
 							}
