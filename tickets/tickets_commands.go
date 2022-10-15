@@ -48,7 +48,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			conf := parsed.Context().Value(CtxKeyConfig).(*models.TicketConfig)
 			if !conf.Enabled {
-				return "Ticket system is disabled in this server, the server admins can enable it in the control panel.", nil
+				return "Ticket system is disabled.", nil
 			}
 
 			_, ticket, err := CreateTicket(parsed.Context(), parsed.GuildData.GS, parsed.GuildData.MS, conf, parsed.Args[0].Str(), true)
@@ -208,7 +208,7 @@ func (p *Plugin) AddCommands() {
 			}()
 
 			// send a heads up that this can take a while
-			common.BotSession.ChannelMessageSend(parsed.ChannelID, "Closing ticket, creating logs, downloading attachments and so on.\nThis may take a while if the ticket is big.")
+			common.BotSession.ChannelMessageSend(parsed.ChannelID, "Thank you for opening this ticket. Please standby while we close the ticket.")
 
 			currentTicket.Ticket.ClosedAt.Time = time.Now()
 			currentTicket.Ticket.ClosedAt.Valid = true

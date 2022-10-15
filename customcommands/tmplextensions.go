@@ -207,7 +207,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 				return "", errors.New("Max nested immediate execCC calls reached (2)")
 			}
 
-			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS)
+			newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, "")
 			if ctx.Msg != nil {
 				newCtx.Msg = ctx.Msg
 				newCtx.Data["Message"] = ctx.Msg
@@ -216,7 +216,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			newCtx.Data["StackDepth"] = currentStackDepth + 1
 			newCtx.IsExecedByLeaveMessage = ctx.IsExecedByLeaveMessage
 
-			go ExecuteCustomCommand(cmd, newCtx)
+			go ExecuteCustomCommand(cmd, newCtx, false)
 			return "", nil
 		}
 
@@ -752,6 +752,8 @@ func serializeValue(v interface{}) ([]byte, error) {
 
 // returns true if were above db limit for the specified guild
 func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
+
+
 	limitMuliplier := 1
 	if isPremium, _ := premium.IsGuildPremium(gs.ID); isPremium {
 		limitMuliplier = 10
@@ -763,6 +765,9 @@ func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	// No limits - Veda
+	return false, err
 
 	return curValues >= int64(limit), nil
 }
@@ -957,3 +962,4 @@ func tmplResultSetToLightDBEntries(ctx *templates.Context, gs *dstate.GuildSet, 
 
 	return entries
 }
+

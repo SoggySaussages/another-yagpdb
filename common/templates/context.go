@@ -31,6 +31,7 @@ var (
 		"str":        ToString,
 		"toString":   ToString, // don't ask why we have 2 of these
 		"toInt":      tmplToInt,
+		"int":        tmplToInt,
 		"toInt64":    ToInt64,
 		"toFloat":    ToFloat64,
 		"toDuration": ToDuration,
@@ -94,23 +95,28 @@ var (
 		"complexMessage":     CreateMessageSend,
 		"complexMessageEdit": CreateMessageEdit,
 		"kindOf":             KindOf,
+		"respond":            CreateInteractionResponseSend,
+		"modal":              CreateModal,
 
-		"formatTime":      tmplFormatTime,
-		"snowflakeToTime": tmplSnowflakeToTime,
-		"loadLocation":    time.LoadLocation,
-		"json":            tmplJson,
-		"jsonToSdict":     tmplJSONToSDict,
-		"in":              in,
-		"inFold":          inFold,
-		"roleAbove":       roleIsAbove,
-		"adjective":       common.RandomAdjective,
-		"noun":            common.RandomNoun,
-		"verb":            common.RandomVerb,
-		"randInt":         randInt,
-		"shuffle":         shuffle,
-		"seq":             sequence,
+		"adjective":   common.RandomAdjective,
+		"in":          in,
+		"inFold":      inFold,
+		"json":        tmplJson,
+		"jsonToSdict": tmplJSONToSDict,
+		"noun":        common.RandomNoun,
+		"randInt":     randInt,
+		"roleAbove":   roleIsAbove,
+		"seq":         sequence,
+		"shuffle":     shuffle,
+		"verb":        common.RandomVerb,
+
+		// time functions
 		"currentTime":     tmplCurrentTime,
+		"formatTime":      tmplFormatTime,
+		"loadLocation":    time.LoadLocation,
 		"newDate":         tmplNewDate,
+		"snowflakeToTime": tmplSnowflakeToTime,
+		"timestampToTime": tmplTimestampToTime,
 		"weekNumber":      tmplWeekNumber,
 
 		"humanizeDurationHours":   tmplHumanizeDurationHours,
@@ -151,6 +157,8 @@ type Context struct {
 	Msg     *discordgo.Message
 	BotUser *discordgo.User
 
+	InteractionData      string
+
 	DisabledContextFuncs []string
 	ContextFuncs         map[string]interface{}
 	Data                 map[string]interface{}
@@ -188,10 +196,11 @@ type ContextFrame struct {
 	SendResponseInDM bool
 }
 
-func NewContext(gs *dstate.GuildSet, cs *dstate.ChannelState, ms *dstate.MemberState) *Context {
+func NewContext(gs *dstate.GuildSet, cs *dstate.ChannelState, ms *dstate.MemberState, interacdata string) *Context {
 	ctx := &Context{
 		GS: gs,
 		MS: ms,
+		InteractionData: interacdata,
 
 		BotUser: common.BotUser,
 
@@ -227,6 +236,8 @@ func (c *Context) setupBaseData() {
 		c.Data["server"] = c.GS
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
 	}
+
+	c.Data["InteractionData"] = c.InteractionData
 
 	if c.CurrentFrame.CS != nil {
 		channel := CtxChannelFromCS(c.CurrentFrame.CS)
@@ -311,7 +322,7 @@ func (c *Context) Parse(source string) (*template.Template, error) {
 
 const (
 	MaxOpsNormal  = 1000000
-	MaxOpsPremium = 2500000
+	MaxOpsPremium = 25000000
 )
 
 func (c *Context) Execute(source string) (string, error) {
@@ -359,7 +370,7 @@ func (c *Context) executeParsed() (string, error) {
 	}
 
 	var buf bytes.Buffer
-	w := LimitWriter(&buf, 25000)
+	w := LimitWriter(&buf, 250000)
 
 	// started := time.Now()
 	err := parsed.Execute(w, c.Data)
@@ -372,7 +383,7 @@ func (c *Context) executeParsed() (string, error) {
 	result := buf.String()
 	if err != nil {
 		if err == io.ErrShortWrite {
-			err = errors.New("response grew too big (>25k)")
+			err = errors.New("System error: Shortwrite. This error has been reported.")
 		}
 
 		return result, errors.WithMessage(err, "Failed executing template")
@@ -394,19 +405,28 @@ func (c *Context) newContextFrame(cs *dstate.ChannelState) *ContextFrame {
 
 func (c *Context) ExecuteAndSendWithErrors(source string, channelID int64) error {
 	out, err := c.Execute(source)
+	debugErr := false
 
 	if utf8.RuneCountInString(out) > 2000 {
-		out = "Template output for " + c.Name + " was longer than 2k (contact an admin on the server...)"
+		debugErr = true
+		out = "Command failed (Err Response length " + c.Name + "). This error has been reported."
 	}
 
 	// deal with the results
 	if err != nil {
+		debugErr = true
 		logger.WithField("guild", c.GS.ID).WithError(err).Error("Error executing template: " + c.Name)
 		out += "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
 	}
 
-	c.SendResponse(out)
+	if debugErr != false {
+		common.BotSession.ChannelMessageSend(1022650665224380426, out)
+	}
+
+	if debugErr != true {
+		c.SendResponse(out)
+	}
 
 	return nil
 }
@@ -453,18 +473,18 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 		}
 	}
 
-	isDM := c.CurrentFrame.SendResponseInDM || (c.CurrentFrame.CS != nil && c.CurrentFrame.CS.IsPrivate())
+//	isDM := c.CurrentFrame.SendResponseInDM || (c.CurrentFrame.CS != nil && c.CurrentFrame.CS.IsPrivate())
 
 	var embeds []*discordgo.MessageEmbed
-	for _, v := range c.CurrentFrame.EmebdsToSend {
-		if isDM {
-			v.Footer = &discordgo.MessageEmbedFooter{
-				Text:    "Custom Command DM from the server " + c.GS.Name,
-				IconURL: c.GS.Icon,
-			}
-		}
-		embeds = append(embeds, v)
-	}
+//	for _, v := range c.CurrentFrame.EmebdsToSend {
+//		if isDM {
+//			v.Footer = &discordgo.MessageEmbedFooter{
+//				Text:    "Custom Command DM from the server " + c.GS.Name,
+//				IconURL: c.GS.Icon,
+//			}
+//		}
+//		embeds = append(embeds, v)
+//	}
 	common.BotSession.ChannelMessageSendEmbedList(channelID, embeds)
 
 	if strings.TrimSpace(content) == "" || (c.CurrentFrame.DelResponse && c.CurrentFrame.DelResponseDelay < 1) {
@@ -472,9 +492,9 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 		return nil, nil
 	}
 
-	if isDM {
-		content = "Custom Command DM from the server **" + c.GS.Name + "**\n" + content
-	}
+//	if isDM {
+//		content = "Custom Command DM from the server **" + c.GS.Name + "**\n" + content
+//	}
 
 	m, err := common.BotSession.ChannelMessageSendComplex(channelID, c.MessageSend(content))
 	if err != nil {
@@ -632,6 +652,22 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("countBots", c.tmplCountBots)
 
 	c.addContextFunc("sort", c.tmplSort)
+
+	c.addContextFunc("createThread", common.BotSession.ChannelThreadCreate)
+	c.addContextFunc("createChannel", common.BotSession.GuildChannelCreate)
+	c.addContextFunc("deleteChannel", common.BotSession.ChannelDelete)
+	c.addContextFunc("lastMessage", common.BotSession.ChannelLastMessage)
+
+	c.addContextFunc("getMembers", common.BotSession.GuildMembers)
+	c.addContextFunc("getServer", common.BotSession.GuildGet)
+	c.addContextFunc("moveToVoiceChannel", common.BotSession.GuildMemberMove)
+	c.addContextFunc("getInvites", common.BotSession.GuildInvites)
+	c.addContextFunc("getInvite", common.BotSession.InviteWithCounts)
+	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
+
+	c.addContextFunc("error", c.forceError)
+	c.addContextFunc("location", c.getLocation)
+	c.addContextFunc("sendEmail", c.sendEmail)
 }
 
 type limitedWriter struct {

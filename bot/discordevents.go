@@ -329,6 +329,7 @@ func HandleInteractionCreate(evt *eventsystem.EventData) {
 	if err != nil {
 		logger.WithError(err).Error("failed publishing dm interaction")
 	}
+
 }
 
 func HandleMessageCreate(evt *eventsystem.EventData) {

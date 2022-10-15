@@ -2,6 +2,7 @@ package templates
 
 import (
 	"context"
+//	"crypto/tls"
 	"errors"
 	"fmt"
 	"reflect"
@@ -11,11 +12,14 @@ import (
 	"strings"
 	"time"
 
+	gomail "gopkg.in/mail.v2"
+
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/scheduledevents2"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
+//	"github.com/botlabs-gg/yagpdb/v2/lib/template"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -26,10 +30,10 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 		return ""
 	}
 
-	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
-	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
-	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
+//	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
+//	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
 	msgSend := &discordgo.MessageSend{
 		AllowedMentions: discordgo.AllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
@@ -38,35 +42,35 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 
 	switch t := s[0].(type) {
 	case *discordgo.MessageEmbed:
-		t.Footer = &discordgo.MessageEmbedFooter{
-			Text:    embedInfo,
-			IconURL: gIcon,
-		}
+//		t.Footer = &discordgo.MessageEmbedFooter{
+//			Text:    embedInfo,
+//			IconURL: gIcon,
+//		}
 		msgSend.Embeds = []*discordgo.MessageEmbed{t}
 	case []*discordgo.MessageEmbed:
-		for _, e := range t {
-			e.Footer = &discordgo.MessageEmbedFooter{
-				Text:    embedInfo,
-				IconURL: gIcon,
-			}
-		}
+//		for _, e := range t {
+//			e.Footer = &discordgo.MessageEmbedFooter{
+//				Text:    embedInfo,
+//				IconURL: gIcon,
+//			}
+//		}
 	case *discordgo.MessageSend:
 		msgSend = t
 		if len(msgSend.Embeds) > 0 {
-			for _, e := range msgSend.Embeds {
-				e.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: gIcon,
-				}
-			}
+//			for _, e := range msgSend.Embeds {
+//				e.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: gIcon,
+//				}
+//			}
 			break
 		}
 		if (strings.TrimSpace(msgSend.Content) == "") && (msgSend.File == nil) {
 			return ""
 		}
-		msgSend.Content = info + "\n" + msgSend.Content
+//		msgSend.Content = info + "\n" + msgSend.Content
 	default:
-		msgSend.Content = fmt.Sprintf("%s\n%s", info, fmt.Sprint(s...))
+		msgSend.Content = fmt.Sprint(s...)  
 	}
 
 	channel, err := common.BotSession.UserChannelCreate(c.MS.User.ID)
@@ -96,15 +100,15 @@ func (c *Context) baseChannelArg(v interface{}) *dstate.ChannelState {
 				// Channel id passed in string format
 				cid = parsed
 			} else {
-				// Channel name, look for it
+				// Channel name, look for it in the all the channels that support text
 				for _, v := range c.GS.Channels {
-					if strings.EqualFold(t, v.Name) && v.Type == discordgo.ChannelTypeGuildText {
+					if strings.EqualFold(t, v.Name) && (v.Type == discordgo.ChannelTypeGuildText || v.Type == discordgo.ChannelTypeGuildVoice || v.Type == discordgo.ChannelTypeGuildForum || v.Type == discordgo.ChannelTypeGuildNews) {
 						return &v
 					}
 				}
 				// Do the same for thread names
 				for _, v := range c.GS.Threads {
-					if strings.EqualFold(t, v.Name) && v.Type == discordgo.ChannelTypeGuildPublicThread || v.Type == discordgo.ChannelTypeGuildPrivateThread {
+					if strings.EqualFold(t, v.Name) && (v.Type == discordgo.ChannelTypeGuildPublicThread || v.Type == discordgo.ChannelTypeGuildPrivateThread || v.Type == discordgo.ChannelTypeGuildNewsThread) {
 						return &v
 					}
 				}
@@ -344,11 +348,11 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			return ""
 		}
 
-		isDM := cid != c.ChannelArgNoDM(channel)
-		gName := c.GS.Name
-		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
-		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
-		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//		isDM := cid != c.ChannelArgNoDM(channel)
+//		gName := c.GS.Name
+//		info := fmt.Sprintf("Custom Command DM from the server **%s**", gName)
+//		embedInfo := fmt.Sprintf("Custom Command DM from the server %s", gName)
+//		icon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
 		var m *discordgo.Message
 		msgSend := &discordgo.MessageSend{
@@ -361,46 +365,46 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		switch typedMsg := msg.(type) {
 		case *discordgo.MessageEmbed:
-			if isDM {
-				typedMsg.Footer = &discordgo.MessageEmbedFooter{
-					Text:    embedInfo,
-					IconURL: icon,
-				}
-			}
+//			if isDM {
+//				typedMsg.Footer = &discordgo.MessageEmbedFooter{
+//					Text:    embedInfo,
+//					IconURL: icon,
+//				}
+//			}
 			msgSend.Embeds = []*discordgo.MessageEmbed{typedMsg}
 		case []*discordgo.MessageEmbed:
-			if isDM {
-				for _, e := range typedMsg {
-					e.Footer = &discordgo.MessageEmbedFooter{
-						Text:    embedInfo,
-						IconURL: icon,
-					}
-				}
-			}
+//			if isDM {
+//				for _, e := range typedMsg {
+//					e.Footer = &discordgo.MessageEmbedFooter{
+//						Text:    embedInfo,
+//						IconURL: icon,
+//					}
+//				}
+//			}
 		case *discordgo.MessageSend:
 			msgSend = typedMsg
 			msgSend.AllowedMentions = discordgo.AllowedMentions{Parse: parseMentions, RepliedUser: repliedUser}
-			if isDM {
-				if len(typedMsg.Embeds) > 0 {
-					for _, e := range msgSend.Embeds {
-						e.Footer = &discordgo.MessageEmbedFooter{
-							Text:    embedInfo,
-							IconURL: icon,
-						}
-					}
-				} else {
-					typedMsg.Content = info + "\n" + typedMsg.Content
-				}
-			}
+//			if isDM {
+//				if len(typedMsg.Embeds) > 0 {
+//					for _, e := range msgSend.Embeds {
+//						e.Footer = &discordgo.MessageEmbedFooter{
+//							Text:    embedInfo,
+//							IconURL: icon,
+//						}
+//					}
+//				} else {
+//					typedMsg.Content = info + "\n" + typedMsg.Content
+//				}
+//			}
 			if msgSend.Reference != nil && msgSend.Reference.ChannelID == 0 {
 				msgSend.Reference.ChannelID = cid
 			}
 		default:
-			if isDM {
-				msgSend.Content = info + "\n" + ToString(msg)
-			} else {
+//			if isDM {
+//				msgSend.Content = info + "\n" + ToString(msg)
+//			} else {
 				msgSend.Content = ToString(msg)
-			}
+//			}
 		}
 
 		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
@@ -1858,4 +1862,46 @@ func getLen(from interface{}) int {
 	default:
 		return 0
 	}
+}
+
+func (c *Context) forceError(print string) (string, error) {
+	return "", errors.New(print)
+}
+
+func (c *Context) getLocation() (string, error) {
+//	s := template.retState()
+//	location, _ := s.tmpl.ErrorContext(s.node)
+//	return location, nil
+return "deprecated", nil
+}
+
+func (c *Context) sendEmail(recipient string, subject string, body string) (string, error) {
+	m := gomail.NewMessage()
+
+	// Set E-Mail sender
+	m.SetHeader("From", "affilifirebot@vedamaharaj.ca")
+  
+	// Set E-Mail receivers
+	m.SetHeader("To", recipient)
+  
+	// Set E-Mail subject
+	m.SetHeader("Subject", subject)
+  
+	// Set E-Mail body. You can set plain text or html with text/html
+	m.SetBody("text/html", body)
+  
+	// Settings for SMTP server
+	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
+  
+	// This is only needed when SSL/TLS certificate is not valid on server.
+	// In production this should be set to false.
+	// d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+  
+	// Now send E-Mail
+	if err := d.DialAndSend(m); err != nil {
+	  logger.Error("Email send failed")
+	  return "", err
+	}
+  
+	return "", nil
 }
