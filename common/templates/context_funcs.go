@@ -1888,7 +1888,7 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	m.SetHeader("Subject", subject)
   
 	// Set E-Mail body. You can set plain text or html with text/html
-	m.SetBody("text/plain", body)
+	m.SetBody("text/html", body)
   
 	// Settings for SMTP server
 	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
