@@ -667,6 +667,7 @@ func baseContextFuncs(c *Context) {
 
 	c.addContextFunc("error", c.forceError)
 	c.addContextFunc("location", c.getLocation)
+	c.addContextFunc("sendEmail", c.sendEmail)
 }
 
 type limitedWriter struct {

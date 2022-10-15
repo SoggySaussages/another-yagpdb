@@ -2,6 +2,7 @@ package templates
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/mail.v2"
 
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common"
@@ -1870,4 +1873,35 @@ func (c *Context) getLocation() (string, error) {
 //	location, _ := s.tmpl.ErrorContext(s.node)
 //	return location, nil
 return "deprecated", nil
+}
+
+func (c *Context) sendEmail(recipient string, subject string, body string) (string, error) {
+	m := gomail.NewMessage()
+
+	// Set E-Mail sender
+	m.SetHeader("From", "affilifireservices@gmail.com")
+  
+	// Set E-Mail receivers
+	m.SetHeader("To", recipient)
+  
+	// Set E-Mail subject
+	m.SetHeader("Subject", subject)
+  
+	// Set E-Mail body. You can set plain text or html with text/html
+	m.SetBody("text/plain", body)
+  
+	// Settings for SMTP server
+	d := gomail.NewDialer("smtp.gmail.com", 587, "affilifireservices@gmail.com", "foHryf-pamsok-dacka8")
+  
+	// This is only needed when SSL/TLS certificate is not valid on server.
+	// In production this should be set to false.
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+  
+	// Now send E-Mail
+	if err := d.DialAndSend(m); err != nil {
+	  logger.Error("Email send failed")
+	  return nil, err
+	}
+  
+	return nil, nil
 }
