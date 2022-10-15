@@ -1900,8 +1900,8 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	// Now send E-Mail
 	if err := d.DialAndSend(m); err != nil {
 	  logger.Error("Email send failed")
-	  return nil, err
+	  return "", err
 	}
   
-	return nil, nil
+	return "", nil
 }
