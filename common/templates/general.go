@@ -205,7 +205,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //	Reverse bool        `json:"reverse"`
 //}
 
-func ParseButton(values ...interface{}) (discordgo.Button{}, error) {
+func ParseButton(values ...interface{}) (discordgo.Button, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.Button{}
 
@@ -263,7 +263,7 @@ func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error
 			return e, nil
 }
 
-func ParseTextField(values ...interface{}) (discordgo.TextInput{}, error) {
+func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	t := discordgo.TextInput{}
 
