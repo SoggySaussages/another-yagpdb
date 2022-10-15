@@ -560,7 +560,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
 					actionRow := []discordgo.MessageComponent{}
-					v2, _ := indirect(reflect.ValueOf(v))
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i := 0; i < v2.Len() && i < maxButtons; i++ {
