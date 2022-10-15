@@ -465,7 +465,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			// Cut the filename to a reasonable length if it's too long
 			filename = common.CutStringShort(ToString(val), 64)
 		case "components":
-			msg.Components = []*discordgo.MessageComponent{}
+			msg.Components = []discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
@@ -483,7 +483,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 						}
 					}
 						
-					msg.Components = append(msg.Components, []*discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					msg.Components = append(msg.Components, []discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "reply":
@@ -552,7 +552,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 				data.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			data.Components = []*discordgo.MessageComponent{}
+			data.Components = []discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
@@ -570,7 +570,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 						}
 					}
 						
-					data.Components = append(data.Components, []*discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
+					data.Components = append(data.Components, []discordgo.MessageComponent{discordgo.ActionsRow{actionRow}})
 				}
 			}
 		case "flags":
