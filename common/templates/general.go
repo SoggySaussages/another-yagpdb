@@ -605,18 +605,20 @@ func CreateModal(values ...interface{}) error {
 		return err
 	}
 
-	//customID := ""
+	customID := ""
 	id := int64(0)
 	token := ""
-	//title := ""
+	title := ""
 	//label := ""
 	components := []discordgo.MessageComponent{}
 
 	for key, val := range messageSdict {
 
 		switch key {
-		case "label":
-			label = ToString(val)
+		case "title":
+			title = ToString(val)
+		case "customID":
+			customID = ToString(val)
 		case "id":
 			id = int64(tmplToInt(val))
 		case "token":
