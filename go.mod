@@ -86,7 +86,11 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
 )
 
-require cloud.google.com/go v0.74.0 // indirect
+require (
+cloud.google.com/go v0.74.0 // indirect
+gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+gopkg.in/mail.v2 v2.3.1 // indirect
+)
 
 require (
 	github.com/AlekSi/pointer v1.1.0

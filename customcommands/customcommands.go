@@ -10,10 +10,15 @@ import (
 	"strings"
 	"unicode/utf8"
 
+//	"github.com/botlabs-gg/yagpdb/v2/bot"
+//	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+//	"github.com/sirupsen/logrus"
+
 	"emperror.dev/errors"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/featureflags"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+//	"github.com/botlabs-gg/yagpdb/v2/bot/eventsystem"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 //	"github.com/botlabs-gg/yagpdb/v2/premium"

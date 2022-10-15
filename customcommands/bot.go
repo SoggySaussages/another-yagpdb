@@ -63,14 +63,86 @@ var _ commands.CommandProvider = (*Plugin)(nil)
 func (p *Plugin) AddCommands() {
 	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands)
 }
-
+//
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleMessageCreate), eventsystem.EventMessageCreate)
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(handleMessageReactions), eventsystem.EventMessageReactionAdd, eventsystem.EventMessageReactionRemove)
+	eventsystem.AddHandlerAsyncLastLegacy(p, func(evt *eventsystem.EventData) {
+		logger.Debug("Handler recieved InteractionCreate")
+		ic := evt.EvtInterface.(*discordgo.InteractionCreate)
+		if ic.GuildID == 0 {
+			logger.Error("Aborting")
+			return
+		}
+		go HandleInteractionCreate(ic)
+		logger.Debug("Handler executed HandleInteractionCreate")
+	}, eventsystem.EventInteractionCreate)
 
+	pubsub.AddHandler("dm_interaction", func(evt *pubsub.Event) {
+		dataCast := evt.Data.(*discordgo.InteractionCreate)
+//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
+		if dataCast.Type == discordgo.InteractionApplicationCommand {
+			logger.Error("Aborting")
+			return
+		}
+		go HandleInteractionCreate(dataCast)
+	}, discordgo.InteractionCreate{})
 	pubsub.AddHandler("custom_commands_run_now", handleCustomCommandsRunNow, models.CustomCommand{})
 	scheduledevents2.RegisterHandler("cc_next_run", NextRunScheduledEvent{}, handleNextRunScheduledEVent)
 	scheduledevents2.RegisterHandler("cc_delayed_run", DelayedRunCCData{}, handleDelayedRunCC)
+}
+
+func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
+	logger.Debug("HandleInteractionCreate triggered")
+//	ic := evt.InteractionCreate()
+//	if ic.GuildID != 0 {
+//		logrus.Error("Aborting: 99")
+//		return
+//	}
+	if ic.Member == nil {
+		logger.Error("Aborting")
+		return
+	}
+
+	if ic.Member.User.ID == common.BotUser.ID {
+		logger.Error("Aborting")
+		return
+	}
+	logger.Debug("HandleInteractionCreate checks passed")
+	if ic.Type == discordgo.InteractionMessageComponent {
+		logger.Debug("InteractionMessageComponent execution begun")
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		gs := bot.State.GetGuild(ic.GuildID)
+		cs := gs.GetChannel(ic.ChannelID)
+		ms := dstate.MemberStateFromMember(ic.Member)
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID))
+		logger.Debug("Executing custom command, standby...")
+		ExecuteCustomCommand(cmd, tmplCtx, true)
+		logger.Debug("Custom command executed")
+		return
+	}
+
+	if ic.Type == discordgo.InteractionModalSubmit {
+		logger.Debug("InteractionModalSubmit execution begun")
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", ic.GuildID, 20)).OneG(context.Background())
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		gs := bot.State.GetGuild(ic.GuildID)
+		cs := gs.GetChannel(ic.ChannelID)
+		ms := dstate.MemberStateFromMember(ic.Member)
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
+		logger.Debug("Executing custom command, standby...")
+		ExecuteCustomCommand(cmd, tmplCtx, true)
+		logger.Debug("Custom command executed")
+		return
+	}
+	logger.Debug("HandleInteractionCreate completed")
 }
 
 func handleCustomCommandsRunNow(event *pubsub.Event) {

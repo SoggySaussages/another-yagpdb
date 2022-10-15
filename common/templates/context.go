@@ -95,23 +95,28 @@ var (
 		"complexMessage":     CreateMessageSend,
 		"complexMessageEdit": CreateMessageEdit,
 		"kindOf":             KindOf,
+		"respond":            CreateInteractionResponseSend,
+		"modal":              CreateModal,
 
-		"formatTime":      tmplFormatTime,
-		"snowflakeToTime": tmplSnowflakeToTime,
-		"loadLocation":    time.LoadLocation,
-		"json":            tmplJson,
-		"jsonToSdict":     tmplJSONToSDict,
-		"in":              in,
-		"inFold":          inFold,
-		"roleAbove":       roleIsAbove,
-		"adjective":       common.RandomAdjective,
-		"noun":            common.RandomNoun,
-		"verb":            common.RandomVerb,
-		"randInt":         randInt,
-		"shuffle":         shuffle,
-		"seq":             sequence,
+		"adjective":   common.RandomAdjective,
+		"in":          in,
+		"inFold":      inFold,
+		"json":        tmplJson,
+		"jsonToSdict": tmplJSONToSDict,
+		"noun":        common.RandomNoun,
+		"randInt":     randInt,
+		"roleAbove":   roleIsAbove,
+		"seq":         sequence,
+		"shuffle":     shuffle,
+		"verb":        common.RandomVerb,
+
+		// time functions
 		"currentTime":     tmplCurrentTime,
+		"formatTime":      tmplFormatTime,
+		"loadLocation":    time.LoadLocation,
 		"newDate":         tmplNewDate,
+		"snowflakeToTime": tmplSnowflakeToTime,
+		"timestampToTime": tmplTimestampToTime,
 		"weekNumber":      tmplWeekNumber,
 
 		"humanizeDurationHours":   tmplHumanizeDurationHours,
@@ -662,6 +667,7 @@ func baseContextFuncs(c *Context) {
 
 	c.addContextFunc("error", c.forceError)
 	c.addContextFunc("location", c.getLocation)
+	c.addContextFunc("sendEmail", c.sendEmail)
 }
 
 type limitedWriter struct {

@@ -1290,3 +1290,7 @@ func (s *state) printError(n parse.Node, print string) {
 		Err:  fmt.Errorf("<%s>", print),
 	})
 }
+
+func (s *state) retState() *state {
+	return s
+}

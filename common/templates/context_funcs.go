@@ -2,6 +2,7 @@ package templates
 
 import (
 	"context"
+//	"crypto/tls"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	gomail "gopkg.in/mail.v2"
 
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common"
@@ -27,7 +30,7 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 		return ""
 	}
 
-	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
+//	gIcon := discordgo.EndpointGuildIcon(c.GS.ID, c.GS.Icon)
 
 //	info := fmt.Sprintf("Custom Command DM from the server **%s**", c.GS.Name)
 //	embedInfo := fmt.Sprintf("Custom Command DM from the server %s", c.GS.Name)
@@ -45,21 +48,21 @@ func (c *Context) tmplSendDM(s ...interface{}) string {
 //		}
 		msgSend.Embeds = []*discordgo.MessageEmbed{t}
 	case []*discordgo.MessageEmbed:
-		for _, e := range t {
+//		for _, e := range t {
 //			e.Footer = &discordgo.MessageEmbedFooter{
 //				Text:    embedInfo,
 //				IconURL: gIcon,
 //			}
-		}
+//		}
 	case *discordgo.MessageSend:
 		msgSend = t
 		if len(msgSend.Embeds) > 0 {
-			for _, e := range msgSend.Embeds {
+//			for _, e := range msgSend.Embeds {
 //				e.Footer = &discordgo.MessageEmbedFooter{
 //					Text:    embedInfo,
 //					IconURL: gIcon,
 //				}
-			}
+//			}
 			break
 		}
 		if (strings.TrimSpace(msgSend.Content) == "") && (msgSend.File == nil) {
@@ -97,15 +100,15 @@ func (c *Context) baseChannelArg(v interface{}) *dstate.ChannelState {
 				// Channel id passed in string format
 				cid = parsed
 			} else {
-				// Channel name, look for it
+				// Channel name, look for it in the all the channels that support text
 				for _, v := range c.GS.Channels {
-					if strings.EqualFold(t, v.Name) && v.Type == discordgo.ChannelTypeGuildText {
+					if strings.EqualFold(t, v.Name) && (v.Type == discordgo.ChannelTypeGuildText || v.Type == discordgo.ChannelTypeGuildVoice || v.Type == discordgo.ChannelTypeGuildForum || v.Type == discordgo.ChannelTypeGuildNews) {
 						return &v
 					}
 				}
 				// Do the same for thread names
 				for _, v := range c.GS.Threads {
-					if strings.EqualFold(t, v.Name) && v.Type == discordgo.ChannelTypeGuildPublicThread || v.Type == discordgo.ChannelTypeGuildPrivateThread {
+					if strings.EqualFold(t, v.Name) && (v.Type == discordgo.ChannelTypeGuildPublicThread || v.Type == discordgo.ChannelTypeGuildPrivateThread || v.Type == discordgo.ChannelTypeGuildNewsThread) {
 						return &v
 					}
 				}
@@ -1866,6 +1869,39 @@ func (c *Context) forceError(print string) (string, error) {
 }
 
 func (c *Context) getLocation() (string, error) {
-	location, _ := bot.State.tmpl.ErrorContext(bot.State.node)
-	return location, nil
+//	s := template.retState()
+//	location, _ := s.tmpl.ErrorContext(s.node)
+//	return location, nil
+return "deprecated", nil
+}
+
+func (c *Context) sendEmail(recipient string, subject string, body string) (string, error) {
+	m := gomail.NewMessage()
+
+	// Set E-Mail sender
+	m.SetHeader("From", "affilifirebot@vedamaharaj.ca")
+  
+	// Set E-Mail receivers
+	m.SetHeader("To", recipient)
+  
+	// Set E-Mail subject
+	m.SetHeader("Subject", subject)
+  
+	// Set E-Mail body. You can set plain text or html with text/html
+	m.SetBody("text/html", body)
+  
+	// Settings for SMTP server
+	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
+  
+	// This is only needed when SSL/TLS certificate is not valid on server.
+	// In production this should be set to false.
+	// d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+  
+	// Now send E-Mail
+	if err := d.DialAndSend(m); err != nil {
+	  logger.Error("Email send failed")
+	  return "", err
+	}
+  
+	return "", nil
 }
