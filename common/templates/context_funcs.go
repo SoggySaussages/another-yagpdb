@@ -1879,7 +1879,7 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	m := gomail.NewMessage()
 
 	// Set E-Mail sender
-	m.SetHeader("From", "affilifireservices@gmail.com")
+	m.SetHeader("From", "affilifirebot@vedamaharaj.ca")
   
 	// Set E-Mail receivers
 	m.SetHeader("To", recipient)
@@ -1891,7 +1891,7 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	m.SetBody("text/plain", body)
   
 	// Settings for SMTP server
-	d := gomail.NewDialer("smtp.gmail.com", 587, "affilifireservices@gmail.com", "foHryf-pamsok-dacka8")
+	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
   
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
