@@ -733,7 +733,7 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	_, err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
@@ -776,18 +776,18 @@ func DeferResponse(values ...interface{}) error {
 			id = int64(val)
 		case "token":
 			token = ToString(val)
-		case "ephemeral"
+		case "ephemeral":
 			flags = uint64(tmplToInt(val))
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
-	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: flags,
-		}
+		},
 	})
 	if err != nil {
 		return err
@@ -824,7 +824,7 @@ func tmplDeleteInteractionResponse(values ...interface{}) error {
 		}
 
 	}
-	_, err := common.BotSession.DeleteInteractionResponse(id, token)
+	err = common.BotSession.DeleteInteractionResponse(id, token)
 	if err != nil {
 		return err
 	}
