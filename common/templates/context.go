@@ -97,6 +97,7 @@ var (
 		"kindOf":             KindOf,
 		"respond":            CreateInteractionResponseSend,
 		"modal":              CreateModal,
+		"defer":              DeferResponse,
 
 		"adjective":   common.RandomAdjective,
 		"in":          in,

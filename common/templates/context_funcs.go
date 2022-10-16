@@ -1096,9 +1096,9 @@ func (c *Context) tmplDelResponse(args ...interface{}) string {
 	if len(args) > 0 {
 		dur = int(ToInt64(args[0]))
 	}
-	if dur > 86400 {
-		dur = 86400
-	}
+//	if dur > 86400 {
+//		dur = 86400
+//	}
 
 	c.CurrentFrame.DelResponseDelay = dur
 	c.CurrentFrame.DelResponse = true
@@ -1126,9 +1126,9 @@ func (c *Context) tmplDelMessage(channel, msgID interface{}, args ...interface{}
 		dur = int(ToInt64(args[0]))
 	}
 
-	if dur > 86400 {
-		dur = 86400
-	}
+//	if dur > 86400 {
+//		dur = 86400
+//	}
 
 	MaybeScheduledDeleteMessage(c.GS.ID, cID, mID, dur)
 

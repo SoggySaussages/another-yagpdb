@@ -291,7 +291,7 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 				case "maxLength":
 					t.MaxLength = tmplToInt(val)
 				default:
-					return t, errors.New(`invalid key "` + key + `" passed to message component builder`)
+					return t, errors.New(`invalid key "` + key + `" passed to text field builder`)
 				}
 		
 			}
@@ -590,6 +590,11 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -642,7 +647,7 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
@@ -653,6 +658,41 @@ func CreateModal(values ...interface{}) error {
 				},
 			},
 		},
+	})
+	return nil
+}
+
+func DeferResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "id":
+			id = int64(val)
+		case "token":
+			token = ToString(val)
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
 	return nil
 }
@@ -696,6 +736,28 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 					return nil, err
 				}
 				msg.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			msg.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							button, err := ParseButton(v2.Index(i2).Interface())
+							if err != nil {
+								return msg, err
+							}
+							actionRow = append(actionRow, button)
+						}
+					}
+						
+					msg.Components = append(msg.Components, discordgo.ActionsRow{actionRow})
+				}
 			}
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to message edit builder`)
