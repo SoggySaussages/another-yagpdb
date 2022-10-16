@@ -97,6 +97,7 @@ var (
 		"kindOf":             KindOf,
 		"respond":            CreateInteractionResponseSend,
 		"editResponse":       EditInteractionResponse,
+		"editComponentMessage": EditComponentMessageSend,
 		"deleteIntractionResponse": tmplDeleteInteractionResponse,
 		"modal":              CreateModal,
 		"defer":              DeferResponse,
