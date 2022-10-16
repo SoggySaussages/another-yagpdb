@@ -767,7 +767,7 @@ func DeferResponse(values ...interface{}) error {
 
 	id := int64(0)
 	token := ""
-	flags := int64(0)
+	flags := uint64(0)
 
 	for key, val := range messageSdict {
 
@@ -777,7 +777,7 @@ func DeferResponse(values ...interface{}) error {
 		case "token":
 			token = ToString(val)
 		case "ephemeral":
-			flags = int64(tmplToInt(val))
+			flags = uint64(tmplToInt(val))
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
