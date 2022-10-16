@@ -665,7 +665,7 @@ func EditInteractionResponse(values ...interface{}) error {
 				}
 			}
 		case "flags":
-			data.Flags = uint64(tmplToInt(val))
+			data.Flags = int64(tmplToInt(val))
 		case "id":
 			id = int64(tmplToInt(val))
 		case "token":
@@ -733,7 +733,7 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	_, err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
@@ -767,17 +767,17 @@ func DeferResponse(values ...interface{}) error {
 
 	id := int64(0)
 	token := ""
-	flags := 0
+	flags := int64(0)
 
 	for key, val := range messageSdict {
 
 		switch key {
 		case "id":
-			id = int64(val)
+			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
 		case "ephemeral":
-			flags = uint64(tmplToInt(val))
+			flags = int64(tmplToInt(val))
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
@@ -816,7 +816,7 @@ func tmplDeleteInteractionResponse(values ...interface{}) error {
 
 		switch key {
 		case "id":
-			id = int64(val)
+			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
 		default:
