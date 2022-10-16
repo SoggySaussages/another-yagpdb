@@ -598,6 +598,92 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	return nil
 }
 
+func EditInteractionResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	data := &discordgo.WebhookParams{}
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "content":
+			data.Content = ToString(val)
+		case "embed":
+			if val == nil {
+				continue
+			}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxEmbeds = 10 // Discord limitation
+				for i := 0; i < v.Len() && i < maxEmbeds; i++ {
+					embed, err := CreateEmbed(v.Index(i).Interface())
+					if err != nil {
+						return err
+					}
+					data.Embeds = append(data.Embeds, embed)
+				}
+			} else {
+				embed, err := CreateEmbed(val)
+				if err != nil {
+					return err
+				}
+				data.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			data.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i := 0; i < v2.Len() && i < maxButtons; i++ {
+							button, err := ParseButton(v2.Index(i).Interface())
+							if err != nil {
+								return err
+							}
+							actionRow = append(actionRow, button)
+						}
+					}
+						
+					data.Components = append(data.Components, discordgo.ActionsRow{actionRow})
+				}
+			}
+		case "flags":
+			data.Flags = uint64(tmplToInt(val))
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	common.BotSession.EditOriginalInteractionResponse(id, token, data)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateModal(values ...interface{}) error {
 	if len(values) < 1 {
 		return nil
@@ -659,10 +745,57 @@ func CreateModal(values ...interface{}) error {
 			},
 		},
 	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func DeferResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	id := int64(0)
+	token := ""
+	flags := 0
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "id":
+			id = int64(val)
+		case "token":
+			token = ToString(val)
+		case "ephemeral"
+			flags = uint64(tmplToInt(val))
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: flags,
+		}
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func tmplDeleteInteractionResponse(values ...interface{}) error {
 	if len(values) < 1 {
 		return nil
 	}
@@ -691,9 +824,10 @@ func DeferResponse(values ...interface{}) error {
 		}
 
 	}
-	_, err := common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
+	_, err := common.BotSession.DeleteInteractionResponse(id, token)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

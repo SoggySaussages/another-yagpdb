@@ -96,6 +96,8 @@ var (
 		"complexMessageEdit": CreateMessageEdit,
 		"kindOf":             KindOf,
 		"respond":            CreateInteractionResponseSend,
+		"editResponse":       EditInteractionResponse,
+		"deleteIntractionResponse": tmplDeleteInteractionResponse,
 		"modal":              CreateModal,
 		"defer":              DeferResponse,
 
