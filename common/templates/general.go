@@ -242,6 +242,65 @@ func ParseButton(values ...interface{}) (discordgo.Button, error) {
 			return b, nil
 }
 
+func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
+	messageSdict, _ := StringKeyDictionary(values...)
+	b := discordgo.SelectMenu{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "placeholder":
+					b.Placeholder = ToString(val)
+				case "id":
+					b.CustomID = ToString(val)
+				case "minValues":
+					b.MinValues = tmplToInt(val)
+				case "maxValues":
+					b.MaxValues = tmplToInt(val)
+				case "disabled":
+					b.Disabled = true
+				case "options":
+					const maxOptions = 10 // Discord limitation
+					for i := 0; i < v.Len() && i < maxOptions; i++ {
+					//	embed, err := CreateEmbed(v.Index(i).Interface())
+					//	if err != nil {
+					//		return nil, err
+					//	}
+						b.Options = append(b.Options, v.Index(i).Interface())
+					}
+				default:
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return b, nil
+}
+
+func ParseSelectMenuOption(values ...interface{}) ([]discordgo.SelectMenuOption, error) {
+	messageSdict, _ := StringKeyDictionary(values...)
+	b := []discordgo.SelectMenuOption{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "label":
+					b.Label = ToString(val)
+				case "value":
+					b.Value = ToString(val)
+				case "description":
+					b.Description = ToString(val)
+				case "default":
+					b.Default = true
+				case "emoji":
+					b.Emoji, _ = ParseComponentEmoji(val)
+				default:
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return b, nil
+}
+
 func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	e := discordgo.ComponentEmoji{}
@@ -405,7 +464,7 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 //	}
 ////}
 //return nil
-//}
+////}
 
 func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	if len(values) < 1 {
@@ -477,11 +536,11 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
-							button, err := ParseButton(v2.Index(i2).Interface())
-							if err != nil {
-								return msg, err
-							}
-							actionRow = append(actionRow, button)
+							//button, err := ParseButton(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return msg, err
+							//}
+							actionRow = append(actionRow, (v2.Index(i2).Interface()))
 						}
 					}
 						
@@ -564,11 +623,11 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i := 0; i < v2.Len() && i < maxButtons; i++ {
-							button, err := ParseButton(v2.Index(i).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, button)
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, (v2.Index(i).Interface()))
 						}
 					}
 						
@@ -653,11 +712,11 @@ func EditComponentMessageSend(values ...interface{}) error {
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i := 0; i < v2.Len() && i < maxButtons; i++ {
-							button, err := ParseButton(v2.Index(i).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, button)
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, v2.Index(i).Interface())
 						}
 					}
 						
@@ -742,11 +801,11 @@ func EditInteractionResponse(values ...interface{}) error {
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i := 0; i < v2.Len() && i < maxButtons; i++ {
-							button, err := ParseButton(v2.Index(i).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, button)
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, v2.Index(i).Interface())
 						}
 					}
 						
