@@ -260,13 +260,14 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 				case "disabled":
 					b.Disabled = true
 				case "options":
+					v, _ := indirect(reflect.ValueOf(val))
 					const maxOptions = 10 // Discord limitation
-					for i := 0; i < val.Len() && i < maxOptions; i++ {
+					for i := 0; i < v.Len() && i < maxOptions; i++ {
 					//	embed, err := CreateEmbed(v.Index(i).Interface())
 					//	if err != nil {
 					//		return nil, err
 					//	}
-						b.Options = append(b.Options, val.Index(i).Interface())
+						b.Options = append(b.Options, v.Index(i).Interface())
 					}
 				default:
 					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
@@ -540,7 +541,11 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 							//if err != nil {
 							//	return msg, err
 							//}
-							actionRow = append(actionRow, json.Marshal(v2.Index(i2).Interface()))
+							marshal, err := json.Marshal(v2.Index(i2).Interface())
+							if err != nil {
+								return msg, err
+							}
+							actionRow = append(actionRow, marshal)
 						}
 					}
 						
@@ -627,7 +632,11 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
+							marshal, err := json.Marshal(v2.Index(i2).Interface())
+							if err != nil {
+								return err
+							}
+							actionRow = append(actionRow, marshal)
 						}
 					}
 						
@@ -716,7 +725,11 @@ func EditComponentMessageSend(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
+							marshal, err := json.Marshal(v2.Index(i2).Interface())
+							if err != nil {
+								return err
+							}
+							actionRow = append(actionRow, marshal)
 						}
 					}
 						
@@ -805,7 +818,11 @@ func EditInteractionResponse(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
+							marshal, err := json.Marshal(v2.Index(i2).Interface())
+							if err != nil {
+								return err
+							}
+							actionRow = append(actionRow, marshal)
 						}
 					}
 						
@@ -1072,7 +1089,11 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 						//	if err != nil {
 						//		return msg, err
 						//	}
-						actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
+							marshal, err := json.Marshal(v2.Index(i2).Interface())
+							if err != nil {
+								return msg, err
+							}
+							actionRow = append(actionRow, marshal)
 						}
 					}
 						
