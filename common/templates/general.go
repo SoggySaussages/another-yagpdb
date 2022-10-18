@@ -540,7 +540,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 							//if err != nil {
 							//	return msg, err
 							//}
-							actionRow = append(actionRow, (v2.Index(i2).Interface()))
+							actionRow = append(actionRow, json.Marshal(v2.Index(i2).Interface()))
 						}
 					}
 						
@@ -627,7 +627,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, (v2.Index(i).Interface()))
+							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
 						}
 					}
 						
@@ -716,7 +716,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, v2.Index(i).Interface())
+							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
 						}
 					}
 						
@@ -805,7 +805,7 @@ func EditInteractionResponse(values ...interface{}) error {
 							//if err != nil {
 							//	return err
 							//}
-							actionRow = append(actionRow, v2.Index(i).Interface())
+							actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
 						}
 					}
 						
@@ -1068,11 +1068,11 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
 						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
-							button, err := ParseButton(v2.Index(i2).Interface())
-							if err != nil {
-								return msg, err
-							}
-							actionRow = append(actionRow, button)
+						//	button, err := ParseButton(v2.Index(i2).Interface())
+						//	if err != nil {
+						//		return msg, err
+						//	}
+						actionRow = append(actionRow, json.Marshal(v2.Index(i).Interface()))
 						}
 					}
 						
