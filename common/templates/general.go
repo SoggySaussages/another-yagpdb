@@ -253,20 +253,20 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					b.Placeholder = ToString(val)
 				case "id":
 					b.CustomID = ToString(val)
-				case "minValues":
-					b.MinValues = tmplToInt(val)
+//				case "minValues":
+//					b.MinValues = tmplToInt(val)
 				case "maxValues":
 					b.MaxValues = tmplToInt(val)
 				case "disabled":
 					b.Disabled = true
 				case "options":
 					const maxOptions = 10 // Discord limitation
-					for i := 0; i < v.Len() && i < maxOptions; i++ {
+					for i := 0; i < val.Len() && i < maxOptions; i++ {
 					//	embed, err := CreateEmbed(v.Index(i).Interface())
 					//	if err != nil {
 					//		return nil, err
 					//	}
-						b.Options = append(b.Options, v.Index(i).Interface())
+						b.Options = append(b.Options, val.Index(i).Interface())
 					}
 				default:
 					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
@@ -276,9 +276,9 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 			return b, nil
 }
 
-func ParseSelectMenuOption(values ...interface{}) ([]discordgo.SelectMenuOption, error) {
+func ParseSelectMenuOption(values ...interface{}) (discordgo.SelectMenuOption, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
-	b := []discordgo.SelectMenuOption{}
+	b := discordgo.SelectMenuOption{}
 
 	for key, val := range messageSdict {
 		
