@@ -206,17 +206,23 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //}
 
 func Component(values ...interface{}) discordgo.MessageComponent {
+	logger.Debug("Parsing a component")
 	var m map[string]interface{}
 	switch t := values[0].(type) {
 	case SDict:
+		logger.Debug("Case 1 for component")
 		m = t
 	case *SDict:
+		logger.Debug("Case 2 for component")
 		m = *t
 	case map[string]interface{}:
+		logger.Debug("Case 3 for component")
 		m = t
 	case discordgo.MessageComponent:
+		logger.Debug("Case 4 for component")
 		return t
 	default:
+		logger.Debug("Case default for component")
 		dict, err := StringKeyDictionary(values...)
 		if err != nil {
 			return nil
@@ -275,6 +281,7 @@ func ParseButton(values ...interface{}) (discordgo.Button, error) {
 }
 
 func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
+	logger.Debug("Parsing a select menu")
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.SelectMenu{}
 
@@ -282,16 +289,21 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 		
 				switch key {
 				case "placeholder":
+					logger.Debugf("Parsing a select menu placeholder %s" val)
 					b.Placeholder = ToString(val)
 				case "id":
+					logger.Debugf("Parsing a select menu id %s" val)
 					b.CustomID = ToString(val)
 //				case "minValues":
 //					b.MinValues = tmplToInt(val)
 				case "maxValues":
+					logger.Debugf("Parsing a select menu maxValues %s" val)
 					b.MaxValues = tmplToInt(val)
 				case "disabled":
+					logger.Debugf("Parsing a select menu disabled %s" val)
 					b.Disabled = true
 				case "options":
+					logger.Debugf("Parsing a select menu options")
 					v, _ := indirect(reflect.ValueOf(val))
 					const maxOptions = 10 // Discord limitation
 					for i := 0; i < v.Len() && i < maxOptions; i++ {
@@ -314,6 +326,7 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 }
 
 func ParseSelectMenuOption(values ...interface{}) (discordgo.SelectMenuOption, error) {
+	logger.Debug("Parsing a select menu option")
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.SelectMenuOption{}
 
@@ -321,14 +334,19 @@ func ParseSelectMenuOption(values ...interface{}) (discordgo.SelectMenuOption, e
 		
 				switch key {
 				case "label":
+					logger.Debugf("Parsing a select menu option label %s" val)
 					b.Label = ToString(val)
 				case "value":
+					logger.Debugf("Parsing a select menu option value %s" val)
 					b.Value = ToString(val)
 				case "description":
+					logger.Debugf("Parsing a select menu option description %s" val)
 					b.Description = ToString(val)
 				case "default":
+					logger.Debugf("Parsing a select menu option default %s" val)
 					b.Default = true
 				case "emoji":
+					logger.Debugf("Parsing a select menu option emoji")
 					b.Emoji, _ = ParseComponentEmoji(val)
 				default:
 					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
