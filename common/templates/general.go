@@ -205,6 +205,26 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //	Reverse bool        `json:"reverse"`
 //}
 
+func Component(values ...interface{}) discordgo.MessageComponent {
+	var m map[string]interface{}
+	switch t := values[0].(type) {
+	case SDict:
+		m = t
+	case *SDict:
+		m = *t
+	case map[string]interface{}:
+		m = t
+	case discordgo.MessageComponent:
+		return t, nil
+	default:
+		dict, err := StringKeyDictionary(values...)
+		if err != nil {
+			return nil, err
+		}
+		m = dict
+	}
+}
+
 func ParseButton(values ...interface{}) (discordgo.Button, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.Button{}
@@ -356,13 +376,6 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 		
 			}
 			return t, nil
-}
-
-func Component(values ...interface{}) *discordgo.MessageComponent {
-	switch t := values[0].(type) {
-	default:
-		return t 
-	}
 }
 
 //func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
@@ -1096,11 +1109,11 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 						//	if err != nil {
 						//		return msg, err
 						//	}
-							marshal, err := json.Marshal(v2.Index(i2).Interface())
-							if err != nil {
-								return msg, err
-							}
-							actionRow = append(actionRow, marshal)
+						//	marshal, err := json.Marshal(v2.Index(i2).Interface())
+						//	if err != nil {
+						//		return msg, err
+						//	}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
 						}
 					}
 						
