@@ -142,7 +142,7 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		marshal, err := json.Marshal(ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0])
+		marshal, err := json.Marshal(ic.ModalSubmitData().Components)
 		if err != nil {
 			logrus.Error(err)
 			return
