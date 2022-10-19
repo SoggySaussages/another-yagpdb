@@ -923,6 +923,7 @@ func CreateModal(values ...interface{}) error {
 	title := ""
 	//label := ""
 	components := []discordgo.MessageComponent{}
+	othercomponents := []discordgo.MessageComponent{}
 
 	for key, val := range messageSdict {
 
@@ -944,8 +945,9 @@ func CreateModal(values ...interface{}) error {
 							if err != nil {
 								return err
 							}
+							othercomponents = append(othercomponents, field)
 							components = append(components, discordgo.ActionsRow{
-								Components: field,
+								Components: othercomponents,
 							})
 						}
 					}
