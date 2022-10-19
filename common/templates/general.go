@@ -205,7 +205,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //	Reverse bool        `json:"reverse"`
 //}
 
-func Component(values ...interface{}) discordgo.MessageComponent {
+func Component(values ...interface{}) *discordgo.MessageComponent {
 	var m map[string]interface{}
 	switch t := values[0].(type) {
 	case SDict:
@@ -214,7 +214,7 @@ func Component(values ...interface{}) discordgo.MessageComponent {
 		m = *t
 	case map[string]interface{}:
 		m = t
-	case discordgo.MessageComponent:
+	case *discordgo.MessageComponent:
 		return t
 	default:
 		dict, err := StringKeyDictionary(values...)
@@ -223,10 +223,21 @@ func Component(values ...interface{}) discordgo.MessageComponent {
 		}
 		m = dict
 	}
-	return m
+	encoded, err := json.Marshal(m)
+	if err != nil {
+		return nil
+	}
+
+	var embed *discordgo.MessageComponent
+	err = json.Unmarshal(encoded, &embed)
+	if err != nil {
+		return nil
+	}
+
+	return embed
 }
 
-func ParseButton(values ...interface{}) (discordgo.Button, error) {
+func ParseButton(values ...interface{}) (*discordgo.Button, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
 	b := discordgo.Button{}
 
@@ -290,7 +301,7 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					//	}
 					sm, err := ParseSelectMenuOption(v.Index(i).Interface())
 					if err != nil {
-						return nil, err
+						return b, err
 					}
 					b.Options = append(b.Options, sm)
 					}
@@ -552,12 +563,12 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			// Cut the filename to a reasonable length if it's too long
 			filename = common.CutStringShort(ToString(val), 64)
 		case "components":
-			msg.Components = []discordgo.MessageComponent{}
+			msg.Components = []*discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.MessageComponent{}
+					actionRow := []*discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
@@ -643,12 +654,12 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 				data.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			data.Components = []discordgo.MessageComponent{}
+			data.Components = []*discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.MessageComponent{}
+					actionRow := []*discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
@@ -736,12 +747,12 @@ func EditComponentMessageSend(values ...interface{}) error {
 				data.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			data.Components = []discordgo.MessageComponent{}
+			data.Components = []*discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.MessageComponent{}
+					actionRow := []*discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
@@ -829,12 +840,12 @@ func EditInteractionResponse(values ...interface{}) error {
 				data.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			data.Components = []discordgo.MessageComponent{}
+			data.Components = []*discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.MessageComponent{}
+					actionRow := []*discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
@@ -893,7 +904,7 @@ func CreateModal(values ...interface{}) error {
 	token := ""
 	title := ""
 	//label := ""
-	components := []discordgo.MessageComponent{}
+	components := []*discordgo.MessageComponent{}
 
 	for key, val := range messageSdict {
 
@@ -1100,12 +1111,12 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 				msg.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			msg.Components = []discordgo.MessageComponent{}
+			msg.Components = []*discordgo.MessageComponent{}
 			v, _ := indirect(reflect.ValueOf(val))
 			if v.Kind() == reflect.Slice {
 				const maxRows = 5 // Discord limitation
 				for i := 0; i < v.Len() && i < maxRows; i++ {
-					actionRow := []discordgo.MessageComponent{}
+					actionRow := []*discordgo.MessageComponent{}
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
