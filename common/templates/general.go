@@ -377,8 +377,9 @@ func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error
 			return e, nil
 }
 
-func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
+func ParseTextField(values ...interface{}) ([]discordgo.TextInput, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
+	s := []discordgo.TextInput{}
 	t := discordgo.TextInput{}
 
 	for key, val := range messageSdict {
@@ -409,6 +410,7 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 				}
 		
 			}
+			s = append(s, t)
 			return t, nil
 }
 
