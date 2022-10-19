@@ -937,9 +937,13 @@ func CreateModal(values ...interface{}) error {
 		case "token":
 			token = ToString(val)
 		case "fields":
-					v, _ := indirect(reflect.ValueOf(val))
+			v2, _ := indirect(reflect.ValueOf(val))
+			if v2.Kind() == reflect.Slice {
+				const maxFields = 5 // Discord limitation
+				for i2 := 0; i2 < v2.Len() && i2 < maxFields; i++ {
+					v, _ := indirect(reflect.ValueOf(v2.Index(i).Interface()))
 					if v.Kind() == reflect.Slice {
-						const maxFields = 5 // Discord limitation
+						const maxFields = 1 // Discord limitation
 						for i := 0; i < v.Len() && i < maxFields; i++ {
 							field, err := ParseTextField(v.Index(i).Interface())
 							if err != nil {
@@ -951,6 +955,8 @@ func CreateModal(values ...interface{}) error {
 							})
 						}
 					}
+				}
+			}
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
