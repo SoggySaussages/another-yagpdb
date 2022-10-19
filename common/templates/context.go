@@ -110,7 +110,7 @@ var (
 		"inFold":      inFold,
 		"json":        tmplJson,
 		"jsonToSdict": tmplJSONToSDict,
-		"jsonToSlice": tmplJSONToSDict,
+		"jsonToSlice": tmplJSONToSlice,
 		"noun":        common.RandomNoun,
 		"randInt":     randInt,
 		"roleAbove":   roleIsAbove,
