@@ -303,10 +303,10 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					logger.Debugf("Parsing a select menu disabled %s", val)
 					b.Disabled = true
 				case "options":
-					logger.Debugf("Parsing a select menu options")
 					v, _ := indirect(reflect.ValueOf(val))
 					const maxOptions = 10 // Discord limitation
 					for i := 0; i < v.Len() && i < maxOptions; i++ {
+						logger.Debugf("Parsing a select menu options")
 					//	embed, err := CreateEmbed(v.Index(i).Interface())
 					//	if err != nil {
 					//		return nil, err
