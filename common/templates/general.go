@@ -377,9 +377,9 @@ func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error
 			return e, nil
 }
 
-func ParseTextField(values ...interface{}) ([]discordgo.TextInput, error) {
+func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 	messageSdict, _ := StringKeyDictionary(values...)
-	t := []discordgo.TextInput{}
+	t := discordgo.TextInput{}
 
 	for key, val := range messageSdict {
 		
@@ -944,7 +944,9 @@ func CreateModal(values ...interface{}) error {
 							if err != nil {
 								return err
 							}
-							components = append(components, discordgo.ActionsRow{field})
+							components = append(components, discordgo.ActionsRow{
+								Components: field,
+							})
 						}
 					}
 		default:
