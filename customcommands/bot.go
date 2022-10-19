@@ -125,7 +125,7 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 			logrus.Error(err)
 			return
 		}
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
@@ -147,7 +147,7 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 			logrus.Error(err)
 			return
 		}
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
