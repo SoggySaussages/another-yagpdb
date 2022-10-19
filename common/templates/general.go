@@ -267,7 +267,7 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					//	if err != nil {
 					//		return nil, err
 					//	}
-						b.Options = append(b.Options, v.Index(i).Interface())
+						b.Options = append(b.Options, Component(v.Index(i).Interface())())
 					}
 				default:
 					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
@@ -356,6 +356,13 @@ func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
 		
 			}
 			return t, nil
+}
+
+func Component(values ...interface{}) *discordgo.MessageComponent {
+	switch t := values[0].(type) {
+	default:
+		return t 
+	}
 }
 
 //func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
@@ -541,11 +548,11 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 							//if err != nil {
 							//	return msg, err
 							//}
-							marshal, err := json.Marshal(v2.Index(i2).Interface())
-							if err != nil {
-								return msg, err
-							}
-							actionRow = append(actionRow, marshal)
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return msg, err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
 						}
 					}
 						
@@ -627,16 +634,16 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
-						for i := 0; i < v2.Len() && i < maxButtons; i++ {
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
 							//button, err := ParseButton(v2.Index(i).Interface())
 							//if err != nil {
 							//	return err
 							//}
-							marshal, err := json.Marshal(v2.Index(i2).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, marshal)
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
 						}
 					}
 						
@@ -720,16 +727,16 @@ func EditComponentMessageSend(values ...interface{}) error {
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
-						for i := 0; i < v2.Len() && i < maxButtons; i++ {
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
 							//button, err := ParseButton(v2.Index(i).Interface())
 							//if err != nil {
 							//	return err
 							//}
-							marshal, err := json.Marshal(v2.Index(i2).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, marshal)
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
 						}
 					}
 						
@@ -813,16 +820,16 @@ func EditInteractionResponse(values ...interface{}) error {
 					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
 					if v2.Kind() == reflect.Slice {
 						const maxButtons = 5 // Discord limitation
-						for i := 0; i < v2.Len() && i < maxButtons; i++ {
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
 							//button, err := ParseButton(v2.Index(i).Interface())
 							//if err != nil {
 							//	return err
 							//}
-							marshal, err := json.Marshal(v2.Index(i2).Interface())
-							if err != nil {
-								return err
-							}
-							actionRow = append(actionRow, marshal)
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
 						}
 					}
 						
