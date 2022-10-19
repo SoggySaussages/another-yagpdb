@@ -939,8 +939,8 @@ func CreateModal(values ...interface{}) error {
 		case "fields":
 			v2, _ := indirect(reflect.ValueOf(val))
 			if v2.Kind() == reflect.Slice {
-				const maxFields = 5 // Discord limitation
-				for i2 := 0; i2 < v2.Len() && i2 < maxFields; i2++ {
+				const maxRows = 5 // Discord limitation
+				for i2 := 0; i2 < v2.Len() && i2 < maxRows; i2++ {
 					v, _ := indirect(reflect.ValueOf(v2.Index(i2).Interface()))
 					if v.Kind() == reflect.Slice {
 						const maxFields = 1 // Discord limitation
@@ -949,6 +949,7 @@ func CreateModal(values ...interface{}) error {
 							if err != nil {
 								return err
 							}
+							othercomponents = []discordgo.MessageComponent{}
 							othercomponents = append(othercomponents, field)
 							components = append(components, discordgo.ActionsRow{
 								Components: othercomponents,
