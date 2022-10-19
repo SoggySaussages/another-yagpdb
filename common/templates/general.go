@@ -1969,7 +1969,7 @@ func tmplJSONToSDict(v interface{}) (SDict, error) {
 
 func tmplJSONToSlice(v interface{}) (Slice, error) {
 	var toSlice Slice
-	err := json.Unmarshal([]byte(ToString(v)), &Slice)
+	err := json.Unmarshal([]byte(ToString(v)), &toSlice)
 	if err != nil {
 		return nil, err
 	}
