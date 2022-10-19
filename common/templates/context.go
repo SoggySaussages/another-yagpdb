@@ -100,6 +100,9 @@ var (
 		"editComponentMessage": 	EditComponentMessageSend,
 		"deleteIntractionResponse": tmplDeleteInteractionResponse,
 		"modal":              		CreateModal,
+		"button":              		ParseButton,
+		"menu":              		ParseSelectMenu,
+		"menuOption":              	ParseSelectMenuOption,
 		"defer":              		DeferResponse,
 
 		"adjective":   common.RandomAdjective,
