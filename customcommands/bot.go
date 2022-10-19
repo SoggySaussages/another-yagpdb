@@ -3,6 +3,7 @@ package customcommands
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"regexp"
