@@ -1967,6 +1967,16 @@ func tmplJSONToSDict(v interface{}) (SDict, error) {
 	return toSDict, nil
 }
 
+func tmplJSONToSlice(v interface{}) (Slice, error) {
+	var toSlice Slice
+	err := json.Unmarshal([]byte(ToString(v)), &toSlice)
+	if err != nil {
+		return nil, err
+	}
+
+	return toSlice, nil
+}
+
 func tmplFormatTime(t time.Time, args ...string) string {
 	layout := time.RFC822
 	if len(args) > 0 {
