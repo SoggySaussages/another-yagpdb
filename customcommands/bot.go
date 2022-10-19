@@ -120,7 +120,12 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID, json.Marshal(ic.MessageComponentData().Values)))
+		marshal, err := json.Marshal(ic.MessageComponentData().Values)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
@@ -137,7 +142,12 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, json.Marshal(ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0])))
+		marshal, err := json.Marshal(ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0])
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
