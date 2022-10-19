@@ -215,14 +215,15 @@ func Component(values ...interface{}) discordgo.MessageComponent {
 	case map[string]interface{}:
 		m = t
 	case discordgo.MessageComponent:
-		return t, nil
+		return t
 	default:
 		dict, err := StringKeyDictionary(values...)
 		if err != nil {
-			return nil, err
+			return nil
 		}
 		m = dict
 	}
+	return nil
 }
 
 func ParseButton(values ...interface{}) (discordgo.Button, error) {
@@ -287,7 +288,7 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					//	if err != nil {
 					//		return nil, err
 					//	}
-						b.Options = append(b.Options, Component(v.Index(i).Interface())())
+						b.Options = append(b.Options, Component(v.Index(i).Interface()))
 					}
 				default:
 					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
