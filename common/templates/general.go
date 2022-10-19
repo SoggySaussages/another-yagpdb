@@ -940,8 +940,8 @@ func CreateModal(values ...interface{}) error {
 			v2, _ := indirect(reflect.ValueOf(val))
 			if v2.Kind() == reflect.Slice {
 				const maxFields = 5 // Discord limitation
-				for i2 := 0; i2 < v2.Len() && i2 < maxFields; i++ {
-					v, _ := indirect(reflect.ValueOf(v2.Index(i).Interface()))
+				for i2 := 0; i2 < v2.Len() && i2 < maxFields; i2++ {
+					v, _ := indirect(reflect.ValueOf(v2.Index(i2).Interface()))
 					if v.Kind() == reflect.Slice {
 						const maxFields = 1 // Discord limitation
 						for i := 0; i < v.Len() && i < maxFields; i++ {
