@@ -311,7 +311,7 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 					//	if err != nil {
 					//		return nil, err
 					//	}
-					sm, err := ParseSelectMenuOption(v.Index(i).Interface())
+					sm, err := Component(v.Index(i).Interface())
 					if err != nil {
 						return b, err
 					}
