@@ -944,7 +944,7 @@ func CreateModal(values ...interface{}) error {
 							if err != nil {
 								return err
 							}
-							components = append(components, field)
+							components = append(components, discordgo.ActionsRow{field})
 						}
 					}
 		default:
