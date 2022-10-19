@@ -289,18 +289,18 @@ func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
 		
 				switch key {
 				case "placeholder":
-					logger.Debugf("Parsing a select menu placeholder %s" val)
+					logger.Debugf("Parsing a select menu placeholder %s", val)
 					b.Placeholder = ToString(val)
 				case "id":
-					logger.Debugf("Parsing a select menu id %s" val)
+					logger.Debugf("Parsing a select menu id %s", val)
 					b.CustomID = ToString(val)
 //				case "minValues":
 //					b.MinValues = tmplToInt(val)
 				case "maxValues":
-					logger.Debugf("Parsing a select menu maxValues %s" val)
+					logger.Debugf("Parsing a select menu maxValues %s", val)
 					b.MaxValues = tmplToInt(val)
 				case "disabled":
-					logger.Debugf("Parsing a select menu disabled %s" val)
+					logger.Debugf("Parsing a select menu disabled %s", val)
 					b.Disabled = true
 				case "options":
 					logger.Debugf("Parsing a select menu options")
@@ -334,16 +334,16 @@ func ParseSelectMenuOption(values ...interface{}) (discordgo.SelectMenuOption, e
 		
 				switch key {
 				case "label":
-					logger.Debugf("Parsing a select menu option label %s" val)
+					logger.Debugf("Parsing a select menu option label %s", val)
 					b.Label = ToString(val)
 				case "value":
-					logger.Debugf("Parsing a select menu option value %s" val)
+					logger.Debugf("Parsing a select menu option value %s", val)
 					b.Value = ToString(val)
 				case "description":
-					logger.Debugf("Parsing a select menu option description %s" val)
+					logger.Debugf("Parsing a select menu option description %s", val)
 					b.Description = ToString(val)
 				case "default":
-					logger.Debugf("Parsing a select menu option default %s" val)
+					logger.Debugf("Parsing a select menu option default %s", val)
 					b.Default = true
 				case "emoji":
 					logger.Debugf("Parsing a select menu option emoji")
