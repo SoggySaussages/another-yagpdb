@@ -957,11 +957,7 @@ func CreateModal(values ...interface{}) error {
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
 			Title:    title,
-			Components: []discordgo.MessageComponent{
-				discordgo.ActionsRow{
-					Components: components,
-				},
-			},
+			Components: components,
 		},
 	})
 	if err != nil {
