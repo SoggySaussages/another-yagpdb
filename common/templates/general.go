@@ -567,9 +567,9 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			}
 		case "file":
 			stringFile := ToString(val)
-			if len(stringFile) > 100000 {
-				return nil, errors.New("file length for send message builder exceeded size limit")
-			}
+//			if len(stringFile) > 100000 {
+//				return nil, errors.New("file length for send message builder exceeded size limit")
+//			}
 			var buf bytes.Buffer
 			buf.WriteString(stringFile)
 
@@ -1653,7 +1653,7 @@ func tmplRoundEven(args ...interface{}) float64 {
 
 var ErrStringTooLong = errors.NewPlain("String is too long (max 1MB)")
 
-const MaxStringLength = 1000000
+const MaxStringLength = 10000000
 
 func joinStrings(sep string, args ...interface{}) (string, error) {
 

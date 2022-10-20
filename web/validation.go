@@ -402,7 +402,7 @@ func ValidateStringField(s string, tags *ValidationTag, guild *dstate.GuildSet) 
 func ValidateNormalStringField(s string, min, max int) error {
 	rCount := utf8.RuneCountInString(s)
 	if rCount > max {
-		return fmt.Errorf("too long (max %d)", max)
+//		return fmt.Errorf("too long (max %d)", max)
 	}
 
 	if rCount < min {
@@ -414,7 +414,7 @@ func ValidateNormalStringField(s string, min, max int) error {
 
 func ValidateTemplateField(s string, max int) error {
 	if utf8.RuneCountInString(s) > max {
-		return fmt.Errorf("too long (max %d)", max)
+//		return fmt.Errorf("too long (max %d)", max)
 	}
 
 	_, err := templates.NewContext(nil, nil, nil, "").Parse(s)
