@@ -13,14 +13,17 @@ import (
 	"time"
 
 	"github.com/botlabs-gg/yagpdb/v2/analytics"
+	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
+	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 	"github.com/botlabs-gg/yagpdb/v2/tickets/models"
+	"github.com/sirupsen/logrus"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 )
@@ -490,15 +493,15 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
-			return nil, err
+			return err
 		}
 		cs := gs.GetChannel(transcriptChannel(conf, adminOnly))
 		ms := bot.GetMember(gs.ID, ticket.AuthorID)
-		tmplCtx := templates.NewContext(gs, cs, ms, htmlTranscript)
+		tmplCtx := templates.NewContext(gs, cs, ms, ToString(htmlTranscript))
 		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
 
 		channel := transcriptChannel(conf, adminOnly)
-		_, err := common.BotSession.ChannelFileSendWithMessage(channel, fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), formattedTranscript)
+		_, err = common.BotSession.ChannelFileSendWithMessage(channel, fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), formattedTranscript)
 		if err != nil {
 			return err
 		}
@@ -577,16 +580,6 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 	buf.WriteString(fmt.Sprintf("Transcript of ticket #%d - %s, opened by %s at %s, closed at %s.\n\n",
 		ticket.LocalID, ticket.Title, ticket.AuthorUsernameDiscrim, ticket.CreatedAt.UTC().Format(TicketTXTDateFormat), ticket.ClosedAt.Time.UTC().Format(TicketTXTDateFormat)))
 
-	htmlbuf.WriteString(fmt.Sprintf(`<table>
-	<tbody>
-	<tr>
-		<td><img src="https://cdn.discordapp.com/avatars/%d/%s.png" alt="User Icon" width="32" height="32" /></td>
-	  <td><h4>%s#%d</h4></td>
-	  <td>%s</td>
-	</tr>
-	</tbody>
-	</table>`, m.Author.ID, m.Author.Avatar, m.Author.Username, m.Author.Discriminator, ts.UTC().Format(TicketTXTDateFormat)))
-
 	// traverse reverse for correct order (they come in with new-old order, we want old-new)
 	for i := len(msgs) - 1; i >= 0; i-- {
 		m := msgs[i]
@@ -601,7 +594,17 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 				buf.WriteString(", ")
 			}
 		}
-
+		
+		htmlbuf.WriteString(fmt.Sprintf(`<table>
+		<tbody>
+		<tr>
+			<td><img src="https://cdn.discordapp.com/avatars/%d/%s.png" alt="User Icon" width="32" height="32" /></td>
+		  <td><h4>%s#%d</h4></td>
+		  <td>%s</td>
+		</tr>
+		</tbody>
+		</table>`, m.Author.ID, m.Author.Avatar, m.Author.Username, m.Author.Discriminator, ts.UTC().Format(TicketTXTDateFormat)))
+		
 		// serialize embeds
 		for _, v := range m.Embeds {
 			marshalled, err := json.Marshal(v)
@@ -610,7 +613,7 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 			}
 
 			buf.Write(marshalled)
-			htmlbuf.Write(fmt.Sprintf("<p>%s</p>", marshalled))
+			htmlbuf.WriteString(fmt.Sprintf("<p>%s</p>", marshalled))
 		}
 
 		buf.WriteRune('\n')
