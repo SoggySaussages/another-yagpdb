@@ -18,6 +18,10 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
+<<<<<<< HEAD
+=======
+	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+>>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
@@ -572,7 +576,11 @@ func archiveAttachments(conf *models.TicketConfig, ticket *models.Ticket, groups
 
 const TicketTXTDateFormat = "3:04 PM"
 
+<<<<<<< HEAD
 func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*bytes.Buffer, string) {
+=======
+func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*bytes.Buffer, *bytes.Buffer) {
+>>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 	var buf bytes.Buffer
 	var htmlbuf bytes.Buffer
 
@@ -593,7 +601,11 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 				buf.WriteString(", ")
 			}
 		}
+<<<<<<< HEAD
 
+=======
+		
+>>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 		htmlbuf.WriteString(fmt.Sprintf(`<table>
 		<tbody>
 		<tr>
@@ -603,7 +615,11 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		</tr>
 		</tbody>
 		</table>`, m.Author.ID, m.Author.Avatar, m.Author.Username, m.Author.Discriminator, ts.UTC().Format(TicketTXTDateFormat)))
+<<<<<<< HEAD
 
+=======
+		
+>>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 		// serialize embeds
 		for _, v := range m.Embeds {
 			marshalled, err := json.Marshal(v)
@@ -619,7 +635,11 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		htmlbuf.WriteString("<br>")
 	}
 
+<<<<<<< HEAD
 	return &buf, htmlbuf.String
+=======
+	return &buf, &htmlbuf
+>>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
