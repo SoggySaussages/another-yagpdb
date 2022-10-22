@@ -1938,8 +1938,9 @@ type captchaReturn struct {
 }
 
 // Probably only needs to be run once, maybe once every time the bot starts?
-func (c *Context) regenerateCaptchaStore() {
+func (c *Context) regenerateCaptchaStore() bool {
 	captcha.SetCustomStore(captcha.NewMemoryStore(CollectNum, Expiration))
+	return true
 }
 
 // Returns a new Captcha id, needed for verification, and the image data, which needs to be passed as a "file" arg for sendMessage
