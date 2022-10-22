@@ -52,6 +52,29 @@ type CustomCommand struct {
 	L customCommandL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
+// customCommandR is where relationships are stored.
+type customCommandR struct {
+	Group *CustomCommandGroup
+}
+
+// NewStruct creates a new relationship struct
+func (*customCommandR) NewStruct() *customCommandR {
+	return &customCommandR{}
+}
+
+// customCommandL is where Load methods for each relationship are stored.
+type customCommandL struct{}
+
+type (
+	// CustomCommandSlice is an alias for a slice of pointers to CustomCommand.
+	// This should generally be used opposed to []CustomCommand.
+	CustomCommandSlice []*CustomCommand
+
+	customCommandQuery struct {
+		*queries.Query
+	}
+)
+
 // Ticket is an object representing the database table.
 type Ticket struct {
 	GuildID               int64     `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
