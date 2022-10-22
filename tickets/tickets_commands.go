@@ -491,7 +491,7 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
 		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
 
-		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
+		cmd, err := customcommands.ExternalGetCCModel(gs.ID)
 		if err != nil {
 			logrus.Error(err)
 			return err
