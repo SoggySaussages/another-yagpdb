@@ -2721,6 +2721,86 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 	return
 }
 
+// ChannelMessageSendComplex sends a message to the given channel.
+// channelID : The ID of a Channel.
+// data      : The message struct to send.
+func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string data *InteractionResponse) (err error) {
+	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
+
+	// TODO: Remove this when compatibility is not required.
+	files := data.Data.Files
+	if data.Data.File != nil {
+		if files == nil {
+			files = []*File{data.Data.File}
+		} else {
+			err = fmt.Errorf("cannot specify both File and Files")
+			return
+		}
+	}
+
+	var response []byte
+	if len(files) > 0 {
+		body := &bytes.Buffer{}
+		bodywriter := multipart.NewWriter(body)
+
+		var payload []byte
+		payload, err = json.Marshal(data)
+		if err != nil {
+			return
+		}
+
+		var p io.Writer
+
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", `form-data; name="payload_json"`)
+		h.Set("Content-Type", "application/json")
+
+		p, err = bodywriter.CreatePart(h)
+		if err != nil {
+			return
+		}
+
+		if _, err = p.Write(payload); err != nil {
+			return
+		}
+
+		for i, file := range files {
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+			contentType := file.ContentType
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			h.Set("Content-Type", contentType)
+
+			p, err = bodywriter.CreatePart(h)
+			if err != nil {
+				return
+			}
+
+			if _, err = io.Copy(p, file.Reader); err != nil {
+				return
+			}
+		}
+msg
+		err = bodywriter.Close()
+		if err != nil {
+			return
+		}
+
+//		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
+		response, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+	} else {
+		response, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
+	}
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(response, &st)
+	return
+}
+
 // GetOriginalInteractionResponse Returns the initial Interaction response. Functions the same as Get Webhook Message.
 // GET /webhooks/{application.id}/{interaction.token}/messages/@original
 func (s *Session) GetOriginalInteractionResponse(applicationID int64, token string) (st *Message, err error) {
@@ -2785,8 +2865,3 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 	_, err = s.RequestWithBucketID("DELETE", EndpointInteractionFollowupMessage(applicationID, token, messageID), nil, nil, EndpointInteractionFollowupMessage(0, "", 0))
 	return
 }
-
-
-
-// Stuff that is not discordgo :p - Veda
-

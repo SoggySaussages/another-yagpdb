@@ -669,6 +669,7 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("getMembers", common.BotSession.GuildMembers)
 	c.addContextFunc("getServer", common.BotSession.GuildGet)
 	c.addContextFunc("moveToVoiceChannel", common.BotSession.GuildMemberMove)
+	c.addContextFunc("auditLog", common.BotSession.GuildAuditLog)
 	c.addContextFunc("getInvites", common.BotSession.GuildInvites)
 	c.addContextFunc("getInvite", common.BotSession.InviteWithCounts)
 	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
@@ -676,6 +677,10 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("error", c.forceError)
 	c.addContextFunc("location", c.getLocation)
 	c.addContextFunc("sendEmail", c.sendEmail)
+
+	c.addContextFunc("newCaptcha", c.newCaptcha)
+	c.addContextFunc("checkCaptcha", c.checkCaptcha)
+	c.addContextFunc("restartCaptcha", c.regenerateCaptchaStore)
 }
 
 type limitedWriter struct {

@@ -703,15 +703,39 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
+		case "file":
+//			if len(stringFile) > 100000 {
+//				return nil, errors.New("file length for send message builder exceeded size limit")
+//			}
+			var buf bytes.Buffer
+			buf.WriteString(stringFile)
+
+			data.File = &discordgo.File{
+				ContentType: "image/png",
+				Reader:      &buf,
+			}
+		case "filename":
+			// Cut the filename to a reasonable length if it's too long
+			filename = common.CutStringShort(ToString(val), 64)
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
+	if msg.File != nil {
+		// We hardcode the extension to .png because we're sending a png :)
+		data.File.Name = filename + ".png"
+
+		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: data,
+		})
+	} else {
 	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
+}
 
 	if err != nil {
 		return err
@@ -796,15 +820,40 @@ func EditComponentMessageSend(values ...interface{}) error {
 			id = int64(tmplToInt(val))
 		case "token":
 			token = ToString(val)
+		case "file":
+//			if len(stringFile) > 100000 {
+//				return nil, errors.New("file length for send message builder exceeded size limit")
+//			}
+			var buf bytes.Buffer
+			buf.WriteString(stringFile)
+
+			data.File = &discordgo.File{
+				ContentType: "image/png",
+				Reader:      &buf,
+			}
+		case "filename":
+			// Cut the filename to a reasonable length if it's too long
+			filename = common.CutStringShort(ToString(val), 64)
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
+	if msg.File != nil {
+		// We hardcode the extension to .png because we're sending a png :)
+		data.File.Name = filename + ".png"
+
+		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: data,
+		})
+	} else {
+
 	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: data,
 	})
+}
 
 	if err != nil {
 		return err

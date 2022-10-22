@@ -20,6 +20,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 //	"github.com/botlabs-gg/yagpdb/v2/lib/template"
+	"github.com/dchest/captcha"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -1904,4 +1905,80 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	}
   
 	return "", nil
+}
+
+// Captcha funcs
+const (
+    // Default number of digits in captcha solution.
+    DefaultLen = 5
+    // The number of captchas created that triggers garbage collection used
+    // by default store.
+    CollectNum = 120
+    // Expiration time of captchas used by default store.
+    Expiration = 10 * time.Minute
+)
+
+const (
+    // Standard width and height of a captcha image.
+    StdWidth  = 240
+    StdHeight = 80
+	// Maximum absolute skew factor of a single digit.
+	maxSkew = 1
+	// Number of background circles.
+	circleCount = 25
+)
+
+type captchaReturn struct {
+	ID 				string
+	Buf				&bytes.Buffer
+	Regenerated 	bool
+	Verified		bool
+	Expired			bool
+}
+
+// Probably only needs to be run once, maybe once every time the bot starts?
+func (c *Context) regenerateCaptchaStore() {
+	captcha.SetCustomStore(captcha.NewMemoryStore(CollectNum, Expiration))
+}
+
+// Returns a new Captcha id, needed for verification, and the image data, which needs to be passed as a "file" arg for sendMessage
+func (c *Context) newCaptcha() captchaReturn {
+	id := captcha.New()
+	var buf bytes.Buffer
+	_ := captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+
+	return captchaReturn{
+		ID: id, 
+		Buf: &buf,
+		}, nil
+}
+
+// Checks captcha input against passed id.
+// ON SUCCESS
+// Returns captchaReturn with Verified true
+// ON FAIL
+// Returns captchaReturn with Regenerated true, new image data
+// ON EXPIRY
+// Returns captchaReturn with Expired true, new image data
+// ...maybe ¯\_(ツ)_/¯
+func (c *Context) checkCaptcha(id string, input string) captchaReturn {
+	ret := captchaReturn{ID: id,}
+	verified := captcha.VerifyString(id, input)
+	if verified {
+		ret.Verified = true
+		return ret
+	} else {
+		ret.Regenerated = captcha.Reload(id)
+	}
+
+	if ret.Regenerated {
+		var buf bytes.Buffer
+		_ := captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+		ret.Buf = &buf
+		return ret
+	} else {
+		ret = newCaptcha()
+		ret.Expired = true
+		return ret
+	}
 }
