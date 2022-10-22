@@ -23,6 +23,12 @@ import (
 	"github.com/volatiletech/sqlboiler/types"
 )
 
+// CustomCommands retrieves all the records using an executor.
+func CustomCommands(mods ...qm.QueryMod) customCommandQuery {
+	mods = append(mods, qm.From("\"custom_commands\""))
+	return customCommandQuery{NewQuery(mods...)}
+}
+
 // CustomCommandGroup is an object representing the database table.
 type CustomCommandGroup struct {
 	ID                int64            `boil:"id" json:"id" toml:"id" yaml:"id"`
