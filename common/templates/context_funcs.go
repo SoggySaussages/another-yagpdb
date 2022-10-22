@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bytes"
 	"context"
 //	"crypto/tls"
 	"errors"
@@ -1950,7 +1951,7 @@ func (c *Context) newCaptcha() captchaReturn {
 	return captchaReturn{
 		ID: id, 
 		Buf: &buf,
-		}, nil
+		}
 }
 
 // Checks captcha input against passed id.
@@ -1977,7 +1978,7 @@ func (c *Context) checkCaptcha(id string, input string) captchaReturn {
 		ret.Buf = &buf
 		return ret
 	} else {
-		ret = newCaptcha()
+		ret = c.newCaptcha()
 		ret.Expired = true
 		return ret
 	}

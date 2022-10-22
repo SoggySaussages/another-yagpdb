@@ -644,6 +644,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
+	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -708,7 +709,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 //				return nil, errors.New("file length for send message builder exceeded size limit")
 //			}
 			var buf bytes.Buffer
-			buf.WriteString(stringFile)
+			buf.Copy(ToByte(val))
 
 			data.File = &discordgo.File{
 				ContentType: "image/png",
@@ -722,7 +723,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		}
 
 	}
-	if msg.File != nil {
+	if data.File != nil {
 		// We hardcode the extension to .png because we're sending a png :)
 		data.File.Name = filename + ".png"
 
@@ -761,6 +762,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
+	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -825,7 +827,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 //				return nil, errors.New("file length for send message builder exceeded size limit")
 //			}
 			var buf bytes.Buffer
-			buf.WriteString(stringFile)
+			buf.Copy(ToByte(val))
 
 			data.File = &discordgo.File{
 				ContentType: "image/png",
@@ -839,7 +841,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 		}
 
 	}
-	if msg.File != nil {
+	if data.File != nil {
 		// We hardcode the extension to .png because we're sending a png :)
 		data.File.Name = filename + ".png"
 
