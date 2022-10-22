@@ -228,6 +228,10 @@ func (cc *CustomCommand) ToDBModel() *models.CustomCommand {
 	return pqCommand
 }
 
+func GetTicketTranscriptCC() (*models.CustomCommand, error) {
+	return models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).CCOneG(context.Background())
+}
+
 func CmdRunsInChannel(cc *models.CustomCommand, channel int64) bool {
 	if cc.GroupID.Valid {
 		// check group restrictions

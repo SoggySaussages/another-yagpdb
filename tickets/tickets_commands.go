@@ -18,7 +18,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
-	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+//	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
@@ -399,7 +399,7 @@ func TicketCommandsRolesRunFuncfunc(gs *dstate.GuildSet) ([]int64, error) {
 func RequireActiveTicketMW(inner dcmd.RunFunc) dcmd.RunFunc {
 	return func(data *dcmd.Data) (interface{}, error) {
 		if data.Context().Value(CtxKeyCurrentTicket) == nil {
-			return "This command can only be ran in a active ticket", nil
+			return "This command can only be run in a active ticket", nil
 		}
 
 		return inner(data)
@@ -491,7 +491,7 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
 		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
 
-		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).CCOneG(context.Background())
+		cmd, err := customcommands.GetTicketTranscriptCC
 		if err != nil {
 			logrus.Error(err)
 			return err
