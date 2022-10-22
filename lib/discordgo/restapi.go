@@ -2782,7 +2782,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 				return
 			}
 		}
-msg
+
 		err = bodywriter.Close()
 		if err != nil {
 			return
@@ -2797,7 +2797,7 @@ msg
 		return
 	}
 
-	err = unmarshal(response, &st)
+	err = unmarshal(response)
 	return
 }
 
