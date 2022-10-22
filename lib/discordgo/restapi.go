@@ -2797,7 +2797,6 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		return
 	}
 
-	err = unmarshal(response)
 	return
 }
 
