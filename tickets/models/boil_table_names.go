@@ -4,10 +4,12 @@
 package models
 
 var TableNames = struct {
+	CustomCommands     string
 	TicketConfigs      string
 	TicketParticipants string
 	Tickets            string
 }{
+	CustomCommands:     "custom_commands",
 	TicketConfigs:      "ticket_configs",
 	TicketParticipants: "ticket_participants",
 	Tickets:            "tickets",
