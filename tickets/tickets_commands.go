@@ -18,10 +18,6 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
-<<<<<<< HEAD
-=======
-	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
->>>>>>> 32b7a80f9a3a39ec9ee947f102f9db36188d59e7
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
