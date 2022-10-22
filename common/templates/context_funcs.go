@@ -1930,7 +1930,7 @@ const (
 
 type captchaReturn struct {
 	ID 				string
-	Buf				&bytes.Buffer
+	Buf				bytes.Buffer
 	Regenerated 	bool
 	Verified		bool
 	Expired			bool
@@ -1945,7 +1945,7 @@ func (c *Context) regenerateCaptchaStore() {
 func (c *Context) newCaptcha() captchaReturn {
 	id := captcha.New()
 	var buf bytes.Buffer
-	_ := captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+	_ = captcha.WriteImage(&buf, id, StdWidth, StdHeight)
 
 	return captchaReturn{
 		ID: id, 
@@ -1973,7 +1973,7 @@ func (c *Context) checkCaptcha(id string, input string) captchaReturn {
 
 	if ret.Regenerated {
 		var buf bytes.Buffer
-		_ := captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+		_ = captcha.WriteImage(&buf, id, StdWidth, StdHeight)
 		ret.Buf = &buf
 		return ret
 	} else {
