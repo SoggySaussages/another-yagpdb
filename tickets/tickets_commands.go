@@ -622,7 +622,7 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 //	strbuild.Write(&htmlbuf)
 	thestring := htmlbuf.String
 
-	return &buf, thestring
+	return &buf, &thestring
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
