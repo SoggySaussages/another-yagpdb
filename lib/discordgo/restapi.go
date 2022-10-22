@@ -2738,7 +2738,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		}
 	}
 
-	var response []byte
+//	var response []byte
 	if len(files) > 0 {
 		body := &bytes.Buffer{}
 		bodywriter := multipart.NewWriter(body)
