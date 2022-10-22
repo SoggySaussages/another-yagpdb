@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+//	"strings"
 	"sync"
 	"time"
 
@@ -491,7 +491,7 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
 		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
 
-		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).CCOneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
 			return err
@@ -620,9 +620,9 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 	}
 //	var strbuild strings.Builder
 //	strbuild.Write(&htmlbuf)
-	thestring := htmlbuf.String
+	thestring := string(htmlbuf)
 
-	return &buf, &thestring
+	return &buf, thestring
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {

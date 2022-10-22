@@ -22,6 +22,36 @@ import (
 	"github.com/volatiletech/sqlboiler/strmangle"
 )
 
+// CustomCommand is an object representing the database table.
+type CustomCommand struct {
+	LocalID                   int64             `boil:"local_id" json:"local_id" toml:"local_id" yaml:"local_id"`
+	GuildID                   int64             `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
+	GroupID                   null.Int64        `boil:"group_id" json:"group_id,omitempty" toml:"group_id" yaml:"group_id,omitempty"`
+	TriggerType               int               `boil:"trigger_type" json:"trigger_type" toml:"trigger_type" yaml:"trigger_type"`
+	TextTrigger               string            `boil:"text_trigger" json:"text_trigger" toml:"text_trigger" yaml:"text_trigger"`
+	TextTriggerCaseSensitive  bool              `boil:"text_trigger_case_sensitive" json:"text_trigger_case_sensitive" toml:"text_trigger_case_sensitive" yaml:"text_trigger_case_sensitive"`
+	TimeTriggerInterval       int               `boil:"time_trigger_interval" json:"time_trigger_interval" toml:"time_trigger_interval" yaml:"time_trigger_interval"`
+	TimeTriggerExcludingDays  types.Int64Array  `boil:"time_trigger_excluding_days" json:"time_trigger_excluding_days" toml:"time_trigger_excluding_days" yaml:"time_trigger_excluding_days"`
+	TimeTriggerExcludingHours types.Int64Array  `boil:"time_trigger_excluding_hours" json:"time_trigger_excluding_hours" toml:"time_trigger_excluding_hours" yaml:"time_trigger_excluding_hours"`
+	LastRun                   null.Time         `boil:"last_run" json:"last_run,omitempty" toml:"last_run" yaml:"last_run,omitempty"`
+	NextRun                   null.Time         `boil:"next_run" json:"next_run,omitempty" toml:"next_run" yaml:"next_run,omitempty"`
+	Responses                 types.StringArray `boil:"responses" json:"responses" toml:"responses" yaml:"responses"`
+	Channels                  types.Int64Array  `boil:"channels" json:"channels,omitempty" toml:"channels" yaml:"channels,omitempty"`
+	ChannelsWhitelistMode     bool              `boil:"channels_whitelist_mode" json:"channels_whitelist_mode" toml:"channels_whitelist_mode" yaml:"channels_whitelist_mode"`
+	Roles                     types.Int64Array  `boil:"roles" json:"roles,omitempty" toml:"roles" yaml:"roles,omitempty"`
+	RolesWhitelistMode        bool              `boil:"roles_whitelist_mode" json:"roles_whitelist_mode" toml:"roles_whitelist_mode" yaml:"roles_whitelist_mode"`
+	ContextChannel            int64             `boil:"context_channel" json:"context_channel" toml:"context_channel" yaml:"context_channel"`
+	ReactionTriggerMode       int16             `boil:"reaction_trigger_mode" json:"reaction_trigger_mode" toml:"reaction_trigger_mode" yaml:"reaction_trigger_mode"`
+	Disabled                  bool              `boil:"disabled" json:"disabled" toml:"disabled" yaml:"disabled"`
+	LastError                 string            `boil:"last_error" json:"last_error" toml:"last_error" yaml:"last_error"`
+	LastErrorTime             null.Time         `boil:"last_error_time" json:"last_error_time,omitempty" toml:"last_error_time" yaml:"last_error_time,omitempty"`
+	RunCount                  int               `boil:"run_count" json:"run_count" toml:"run_count" yaml:"run_count"`
+	ShowErrors                bool              `boil:"show_errors" json:"show_errors" toml:"show_errors" yaml:"show_errors"`
+
+	R *customCommandR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L customCommandL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+}
+
 // Ticket is an object representing the database table.
 type Ticket struct {
 	GuildID               int64     `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
@@ -184,6 +214,11 @@ var (
 
 // OneG returns a single ticket record from the query using the global executor.
 func (q ticketQuery) OneG(ctx context.Context) (*Ticket, error) {
+	return q.One(ctx, boil.GetContextDB())
+}
+
+// OneG returns a single customCommand record from the query using the global executor.
+func (q customCommandQuery) CCOneG(ctx context.Context) (*CustomCommand, error) {
 	return q.One(ctx, boil.GetContextDB())
 }
 
