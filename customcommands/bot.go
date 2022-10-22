@@ -743,7 +743,7 @@ func sortTriggeredCCs(ccs []*TriggeredCC) {
 }
 
 func ExternalGetCCModel(id int64) (*models.CustomCommand, error) {
-	models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", id, 29)).OneG(context.Background())
+	return models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", id, 29)).OneG(context.Background())
 }
 
 func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomCommand, member *dstate.MemberState, cs *dstate.ChannelState, cmdArgs []string, stripped string, m *discordgo.Message) error {
