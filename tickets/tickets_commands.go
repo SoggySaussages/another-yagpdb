@@ -618,11 +618,8 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		buf.WriteRune('\n')
 		htmlbuf.WriteString("<br>")
 	}
-//	var strbuild strings.Builder
-//	strbuild.Write(&htmlbuf)
-	thestring := string(htmlbuf.Bytes)
 
-	return &buf, thestring
+	return &buf, htmlbuf.String()
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
