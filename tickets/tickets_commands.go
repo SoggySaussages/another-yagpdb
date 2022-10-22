@@ -489,13 +489,13 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
 		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
 
-		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
+		cmd, err := customcommands.models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
 			return err
 		}
 		cs := gs.GetChannel(transcriptChannel(conf, adminOnly))
-		ms, err := bot.GetMember(gs.ID, ticket.AuthorID)
+		ms, _ := bot.GetMember(gs.ID, ticket.AuthorID)
 		tmplCtx := templates.NewContext(gs, cs, ms, htmlTranscript)
 		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
 
@@ -617,7 +617,7 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		htmlbuf.WriteString("<br>")
 	}
 
-	return &buf, htmlbuf.String
+	return &buf, &htmlbuf.String
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
