@@ -90,6 +90,36 @@ type (
 	}
 )
 
+// customCommandGroupR is where relationships are stored.
+type customCommandGroupR struct {
+	GroupCustomCommands CustomCommandSlice
+}
+
+// NewStruct creates a new relationship struct
+func (*customCommandGroupR) NewStruct() *customCommandGroupR {
+	return &customCommandGroupR{}
+}
+
+// customCommandGroupL is where Load methods for each relationship are stored.
+type customCommandGroupL struct{}
+
+var (
+	customCommandGroupAllColumns            = []string{"id", "guild_id", "name", "ignore_roles", "ignore_channels", "whitelist_roles", "whitelist_channels"}
+	customCommandGroupColumnsWithoutDefault = []string{"guild_id", "name", "ignore_roles", "ignore_channels", "whitelist_roles", "whitelist_channels"}
+	customCommandGroupColumnsWithDefault    = []string{"id"}
+	customCommandGroupPrimaryKeyColumns     = []string{"id"}
+)
+
+type (
+	// CustomCommandGroupSlice is an alias for a slice of pointers to CustomCommandGroup.
+	// This should generally be used opposed to []CustomCommandGroup.
+	CustomCommandGroupSlice []*CustomCommandGroup
+
+	customCommandGroupQuery struct {
+		*queries.Query
+	}
+)
+
 // Ticket is an object representing the database table.
 type Ticket struct {
 	GuildID               int64     `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
