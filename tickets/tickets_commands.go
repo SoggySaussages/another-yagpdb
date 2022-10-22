@@ -618,8 +618,9 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		buf.WriteRune('\n')
 		htmlbuf.WriteString("<br>")
 	}
-	var strbuild strings.Builder
-	thestring := strbuild.Write(&htmlbuf)
+//	var strbuild strings.Builder
+//	strbuild.Write(&htmlbuf)
+	thestring := htmlbuf.String
 
 	return &buf, thestring
 }
