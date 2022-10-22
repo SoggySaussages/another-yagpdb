@@ -17,6 +17,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+	"github.com/botlabs-gg/yagpdb/v2/models"
 	"github.com/botlabs-gg/yagpdb/v2/customcommands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
@@ -489,7 +490,7 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
 		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
 
-		cmd, err := customcommands.models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
+		cmd, err := models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", gs.ID, 29)).OneG(context.Background())
 		if err != nil {
 			logrus.Error(err)
 			return err
@@ -617,7 +618,7 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*byt
 		htmlbuf.WriteString("<br>")
 	}
 
-	return &buf, &htmlbuf.String
+	return &buf, string(htmlbuf.String)
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
