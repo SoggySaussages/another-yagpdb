@@ -20,7 +20,22 @@ import (
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	"github.com/volatiletech/sqlboiler/queries/qmhelper"
 	"github.com/volatiletech/sqlboiler/strmangle"
+	"github.com/volatiletech/sqlboiler/types"
 )
+
+// CustomCommandGroup is an object representing the database table.
+type CustomCommandGroup struct {
+	ID                int64            `boil:"id" json:"id" toml:"id" yaml:"id"`
+	GuildID           int64            `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
+	Name              string           `boil:"name" json:"name" toml:"name" yaml:"name"`
+	IgnoreRoles       types.Int64Array `boil:"ignore_roles" json:"ignore_roles,omitempty" toml:"ignore_roles" yaml:"ignore_roles,omitempty"`
+	IgnoreChannels    types.Int64Array `boil:"ignore_channels" json:"ignore_channels,omitempty" toml:"ignore_channels" yaml:"ignore_channels,omitempty"`
+	WhitelistRoles    types.Int64Array `boil:"whitelist_roles" json:"whitelist_roles,omitempty" toml:"whitelist_roles" yaml:"whitelist_roles,omitempty"`
+	WhitelistChannels types.Int64Array `boil:"whitelist_channels" json:"whitelist_channels,omitempty" toml:"whitelist_channels" yaml:"whitelist_channels,omitempty"`
+
+	R *customCommandGroupR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L customCommandGroupL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+}
 
 // CustomCommand is an object representing the database table.
 type CustomCommand struct {
@@ -241,7 +256,7 @@ func (q ticketQuery) OneG(ctx context.Context) (*Ticket, error) {
 }
 
 // OneG returns a single customCommand record from the query using the global executor.
-func (q customCommandQuery) CCOneG(ctx context.Context) (*CustomCommand, error) {
+func (q customCommandQuery) OneG(ctx context.Context) (*CustomCommand, error) {
 	return q.One(ctx, boil.GetContextDB())
 }
 
@@ -257,6 +272,23 @@ func (q ticketQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Ticke
 			return nil, sql.ErrNoRows
 		}
 		return nil, errors.WrapIf(err, "models: failed to execute a one query for tickets")
+	}
+
+	return o, nil
+}
+
+// One returns a single customCommand record from the query.
+func (q customCommandQuery) One(ctx context.Context, exec boil.ContextExecutor) (*CustomCommand, error) {
+	o := &CustomCommand{}
+
+	queries.SetLimit(q.Query, 1)
+
+	err := q.Bind(ctx, exec, o)
+	if err != nil {
+		if errors.Cause(err) == sql.ErrNoRows {
+			return nil, sql.ErrNoRows
+		}
+		return nil, errors.Wrap(err, "models: failed to execute a one query for custom_commands")
 	}
 
 	return o, nil
