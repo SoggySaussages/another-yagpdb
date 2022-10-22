@@ -709,7 +709,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 //				return nil, errors.New("file length for send message builder exceeded size limit")
 //			}
 			var buf bytes.Buffer
-			buf.Copy(ToByte(val))
+			buf.Write(ToByte(val))
 
 			data.File = &discordgo.File{
 				ContentType: "image/png",
@@ -827,7 +827,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 //				return nil, errors.New("file length for send message builder exceeded size limit")
 //			}
 			var buf bytes.Buffer
-			buf.Copy(ToByte(val))
+			buf.Write(ToByte(val))
 
 			data.File = &discordgo.File{
 				ContentType: "image/png",

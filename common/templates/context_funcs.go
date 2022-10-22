@@ -1931,7 +1931,7 @@ const (
 
 type captchaReturn struct {
 	ID 				string
-	Buf				bytes.Buffer
+	Buf				*bytes.Buffer
 	Regenerated 	bool
 	Verified		bool
 	Expired			bool
