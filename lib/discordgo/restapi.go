@@ -2726,6 +2726,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
 func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
+	logger.Debug("Complex Interaction Response started")
 	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
 	st = ""
 
@@ -2742,6 +2743,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 
 //	var response []byte
 	if len(files) > 0 {
+		logger.Debug("Writing payload")
 		body := &bytes.Buffer{}
 		bodywriter := multipart.NewWriter(body)
 
@@ -2766,7 +2768,9 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
+		logger.Debug("Ranging files")
 		for i, file := range files {
+			logger.Debugf("File %d", i)
 			h := make(textproto.MIMEHeader)
 			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
 			contentType := file.ContentType
@@ -2790,14 +2794,19 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
-		os.Stdout.Write(bytes.NewBufferString(bodywriter.FormDataContentType()).Bytes()) 
-		os.Stdout.Write(body.Bytes())
+		logger.Debug("POSTing")
+		logger.Debug(bodywriter.FormDataContentType())
+		logger.Debug(body.String())
+
+		debug := ""
 
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
-		_, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
-		_, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
+		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
 	}
+	dbgBuf := NewBuffer(debug)
+	logger.Debug(dbgBuf.String())
 	if err != nil {
 		return
 	}
