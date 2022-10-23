@@ -2798,7 +2798,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		logrus.Debug(bodywriter.FormDataContentType())
 		logrus.Debug(body.String())
 
-		var debug []byte
+		debug := bytes.NewBufferString("").Bytes()
 
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
 		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
