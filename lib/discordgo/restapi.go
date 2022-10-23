@@ -2726,7 +2726,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
 func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
-	logger.Debug("Complex Interaction Response started")
+	logrus.Debug("Complex Interaction Response started")
 	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
 	st = ""
 
@@ -2798,14 +2798,14 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		logrus.Debug(bodywriter.FormDataContentType())
 		logrus.Debug(body.String())
 
-		debug := ""
+		var debug []byte
 
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
 		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
 		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
 	}
-	dbgBuf := NewBuffer(debug)
+	dbgBuf := bytes.NewBuffer(debug)
 	logrus.Debug(dbgBuf.String())
 	if err != nil {
 		return
