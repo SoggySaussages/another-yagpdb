@@ -25,13 +25,13 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // All error constants
@@ -2743,7 +2743,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 
 //	var response []byte
 	if len(files) > 0 {
-		logger.Debug("Writing payload")
+		logrus.Debug("Writing payload")
 		body := &bytes.Buffer{}
 		bodywriter := multipart.NewWriter(body)
 
@@ -2768,9 +2768,9 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
-		logger.Debug("Ranging files")
+		logrus.Debug("Ranging files")
 		for i, file := range files {
-			logger.Debugf("File %d", i)
+			logrus.Debugf("File %d", i)
 			h := make(textproto.MIMEHeader)
 			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
 			contentType := file.ContentType
@@ -2794,9 +2794,9 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
-		logger.Debug("POSTing")
-		logger.Debug(bodywriter.FormDataContentType())
-		logger.Debug(body.String())
+		logrus.Debug("POSTing")
+		logrus.Debug(bodywriter.FormDataContentType())
+		logrus.Debug(body.String())
 
 		debug := ""
 
@@ -2806,7 +2806,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
 	}
 	dbgBuf := NewBuffer(debug)
-	logger.Debug(dbgBuf.String())
+	logrus.Debug(dbgBuf.String())
 	if err != nil {
 		return
 	}
