@@ -2724,7 +2724,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // ChannelMessageSendComplex sends a message to the given channel.
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
-func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (string, err error) {
+func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (string, error) {
 	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
 
 	// TODO: Remove this when compatibility is not required.
