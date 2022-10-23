@@ -1887,6 +1887,8 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	parsed, _ := strconv.ParseInt(os.Getenv("SENDEMAIL_PORT"), 10, 64)
 	port := int(parsed)
 
+	logger.Debugf("Email send triggered, with email registered as %s, password as %s, server as %s, and port at %d.", add, pass, serv, port)
+
 	// Set E-Mail sender
 	m.SetHeader("From", add)
   
