@@ -2790,7 +2790,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
-		os.Stdout.Write(NewBufferString(bodywriter.FormDataContentType())) 
+		os.Stdout.Write(bytes.NewBufferString(bodywriter.FormDataContentType())) 
 		os.Stdout.Write(body.Bytes())
 
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
