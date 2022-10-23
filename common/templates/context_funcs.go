@@ -1880,8 +1880,13 @@ return "deprecated", nil
 func (c *Context) sendEmail(recipient string, subject string, body string) (string, error) {
 	m := gomail.NewMessage()
 
+	pass := os.Getenv("SENDEMAIL_PASSWORD")
+	add := os.Getenv("SENDEMAIL_ADDRESS")
+	serv := os.Getenv("SENDEMAIL_SERVER")
+	port := int(os.Getenv("SENDEMAIL_PORT"))
+
 	// Set E-Mail sender
-	m.SetHeader("From", "affilifirebot@vedamaharaj.ca")
+	m.SetHeader("From", add)
   
 	// Set E-Mail receivers
 	m.SetHeader("To", recipient)
@@ -1893,7 +1898,7 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	m.SetBody("text/html", body)
   
 	// Settings for SMTP server
-	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
+	d := gomail.NewDialer(serv, port, add, pass)
   
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.

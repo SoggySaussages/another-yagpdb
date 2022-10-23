@@ -2779,7 +2779,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			}
 
 			if _, err = io.Copy(p, file.Reader); err != nil {
-				return
+				return err
 			}
 		}
 

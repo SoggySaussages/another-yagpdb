@@ -621,7 +621,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	}
 	if msg.File != nil {
 		// We hardcode the extension to .txt to prevent possible abuse via .bat or other possible harmful/easily corruptable file formats
-		msg.File.Name = filename + ".txt"
+		msg.File.Name = filename // + ".txt"
 	}
 
 	return msg, nil
@@ -725,14 +725,14 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	}
 	if data.File != nil {
 		// We hardcode the extension to .png because we're sending a png :)
-		data.File.Name = filename + ".png"
+		data.File.Name = filename // + ".png"
 
 		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: data,
 		})
 	} else {
-	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
@@ -843,7 +843,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 	}
 	if data.File != nil {
 		// We hardcode the extension to .png because we're sending a png :)
-		data.File.Name = filename + ".png"
+		data.File.Name = filename // + ".png"
 
 		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
@@ -851,7 +851,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 		})
 	} else {
 
-	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: data,
 	})
