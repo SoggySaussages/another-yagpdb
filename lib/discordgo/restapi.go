@@ -2724,8 +2724,9 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // ChannelMessageSendComplex sends a message to the given channel.
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
-func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (err error) {
+func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
 	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
+	st = ""
 
 	// TODO: Remove this when compatibility is not required.
 	files := data.Data.Files
@@ -2788,6 +2789,8 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 			return
 		}
 
+		logger.Debug(fmt.Sprint(string(bodywriter.FormDataContentType()), string(body.Bytes())))
+
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
 		_, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
@@ -2796,7 +2799,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 	if err != nil {
 		return
 	}
-	err = unmarshal(body, &st)
+	
 	return
 }
 
