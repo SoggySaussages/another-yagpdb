@@ -1884,7 +1884,8 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	pass := os.Getenv("SENDEMAIL_PASSWORD")
 	add := os.Getenv("SENDEMAIL_ADDRESS")
 	serv := os.Getenv("SENDEMAIL_SERVER")
-	port := int(os.Getenv("SENDEMAIL_PORT"))
+	parsed, _ := strconv.ParseInt(os.Getenv("SENDEMAIL_PORT"), 10, 64)
+	port := int(parsed)
 
 	// Set E-Mail sender
 	m.SetHeader("From", add)
