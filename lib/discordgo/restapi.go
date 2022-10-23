@@ -2724,7 +2724,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // ChannelMessageSendComplex sends a message to the given channel.
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
-func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (string, error) {
+func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (err error) {
 	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
 
 	// TODO: Remove this when compatibility is not required.
@@ -2746,7 +2746,7 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		var payload []byte
 		payload, err = json.Marshal(data)
 		if err != nil {
-			return err
+			return
 		}
 
 		var p io.Writer
@@ -2757,11 +2757,11 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 
 		p, err = bodywriter.CreatePart(h)
 		if err != nil {
-			return err
+			return
 		}
 
 		if _, err = p.Write(payload); err != nil {
-			return err
+			return
 		}
 
 		for i, file := range files {
@@ -2775,17 +2775,17 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 
 			p, err = bodywriter.CreatePart(h)
 			if err != nil {
-				return "", nil
+				return
 			}
 
 			if _, err = io.Copy(p, file.Reader); err != nil {
-				return "", err
+				return
 			}
 		}
 
 		err = bodywriter.Close()
 		if err != nil {
-			return "", err
+			return
 		}
 
 //		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
@@ -2794,9 +2794,9 @@ func (s *Session) CreateInteractionResponseComplex(interactionID int64, token st
 		_, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
 	}
 	if err != nil {
-		return err
+		return
 	}
-
+	err = unmarshal(body, &st)
 	return
 }
 
