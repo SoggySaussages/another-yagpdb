@@ -2732,12 +2732,12 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 		if err != nil {
 			return err
 		}
-		log.Info("Files")
+		log.Print("Files")
 		_, err = s.request("POST", endpoint, contentType, body, nil, endpoint)
 		return err
 	}
 
-	log.Info("No Files")
+	log.Print("No Files")
 	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
 	return err
 }
