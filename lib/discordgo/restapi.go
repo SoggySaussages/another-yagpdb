@@ -2897,241 +2897,241 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 	return
 }
 
+//// ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
-// Functions specific to stage instances
-// ------------------------------------------------------------------------------------------------
-
-// StageInstanceCreate creates and returns a new Stage instance associated to a Stage channel.
-// data : Parameters needed to create a stage instance.
-// data : The data of the Stage instance to create
-func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInstance, err error) {
-	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, nil, EndpointStageInstances)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &si)
-	return
-}
-
-// StageInstance will retrieve a Stage instance by ID of the Stage channel.
-// channelID : The ID of the Stage channel
-func (s *Session) StageInstance(channelID string) (si *StageInstance, err error) {
-	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &si)
-	return
-}
-
-// StageInstanceEdit will edit a Stage instance by ID of the Stage channel.
-// channelID : The ID of the Stage channel
-// data : The data to edit the Stage instance
-func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams) (si *StageInstance, err error) {
-
-	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, nil, EndpointStageInstance(channelID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &si)
-	return
-}
-
-// StageInstanceDelete will delete a Stage instance by ID of the Stage channel.
-// channelID : The ID of the Stage channel
-func (s *Session) StageInstanceDelete(channelID string) (err error) {
-	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
-	return
-}
-
-// ------------------------------------------------------------------------------------------------
-// Functions specific to guilds scheduled events
-// ------------------------------------------------------------------------------------------------
-
-// GuildScheduledEvents returns an array of GuildScheduledEvent for a guild
-// guildID        : The ID of a Guild
-// userCount      : Whether to include the user count in the response
-func (s *Session) GuildScheduledEvents(guildID string, userCount bool) (st []*GuildScheduledEvent, err error) {
-	uri := EndpointGuildScheduledEvents(guildID)
-	if userCount {
-		uri += "?with_user_count=true"
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvents(guildID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEvent returns a specific GuildScheduledEvent in a guild
-// guildID        : The ID of a Guild
-// eventID        : The ID of the event
-// userCount      : Whether to include the user count in the response
-func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (st *GuildScheduledEvent, err error) {
-	uri := EndpointGuildScheduledEvent(guildID, eventID)
-	if userCount {
-		uri += "?with_user_count=true"
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventCreate creates a GuildScheduledEvent for a guild and returns it
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, nil, EndpointGuildScheduledEvents(guildID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventEdit updates a specific event for a guild and returns it.
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, nil, EndpointGuildScheduledEvent(guildID, eventID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventDelete deletes a specific GuildScheduledEvent in a guild
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventDelete(guildID, eventID string) (err error) {
-	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
-	return
-}
-
-// GuildScheduledEventUsers returns an array of GuildScheduledEventUser for a particular event in a guild
-// guildID    : The ID of a Guild
-// eventID    : The ID of the event
-// limit      : The maximum number of users to return (Max 100)
-// withMember : Whether to include the member object in the response
-// beforeID   : If is not empty all returned users entries will be before the given ID
-// afterID    : If is not empty all returned users entries will be after the given ID
-func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string) (st []*GuildScheduledEventUser, err error) {
-	uri := EndpointGuildScheduledEventUsers(guildID, eventID)
-
-	queryParams := url.Values{}
-	if withMember {
-		queryParams.Set("with_member", "true")
-	}
-	if limit > 0 {
-		queryParams.Set("limit", strconv.Itoa(limit))
-	}
-	if beforeID != "" {
-		queryParams.Set("before", beforeID)
-	}
-	if afterID != "" {
-		queryParams.Set("after", afterID)
-	}
-
-	if len(queryParams) > 0 {
-		uri += "?" + queryParams.Encode()
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// ----------------------------------------------------------------------
-// Functions specific to auto moderation
-// ----------------------------------------------------------------------
-
-// AutoModerationRules returns a list of auto moderation rules.
-// guildID : ID of the guild
-func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule, err error) {
-	endpoint := EndpointGuildAutoModerationRules(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRule returns an auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModerationRule, err error) {
-	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
-// guildID : ID of the guild
-// rule    : Rule data
-func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
-	endpoint := EndpointGuildAutoModerationRules(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("POST", endpoint, rule, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-// rule    : New rule data
-func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
-	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleDelete deletes an auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
-	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
-	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, nil, endpoint)
-	return
-}
+//// Functions specific to stage instances
+//// StageInstanceCreate creates and returns a new Stage instance associated to a Stage channel.
+//// data : Parameters needed to create a stage instance.
+//
+//// data : The data of the Stage instance to create
+//func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, nil, EndpointStageInstances)
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstance will retrieve a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//func (s *Session) StageInstance(channelID string) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstanceEdit will edit a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//// data : The data to edit the Stage instance
+//func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, nil, EndpointStageInstance(channelID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstanceDelete will delete a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//func (s *Session) StageInstanceDelete(channelID string) (err error) {
+//	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
+//	return
+//}
+//// ------------------------------------------------------------------------------------------------
+//// Functions specific to guilds scheduled events
+//
+//// ------------------------------------------------------------------------------------------------
+//// GuildScheduledEvents returns an array of GuildScheduledEvent for a guild
+//// guildID        : The ID of a Guild
+//
+//// userCount      : Whether to include the user count in the response
+//func (s *Session) GuildScheduledEvents(guildID string, userCount bool) (st []*GuildScheduledEvent, err error) {
+//	uri := EndpointGuildScheduledEvents(guildID)
+//	if userCount {
+//		uri += "?with_user_count=true"
+//	}
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvents(guildID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEvent returns a specific GuildScheduledEvent in a guild
+//// guildID        : The ID of a Guild
+//
+//// eventID        : The ID of the event
+//// userCount      : Whether to include the user count in the response
+//func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (st *GuildScheduledEvent, err error) {
+//	uri := EndpointGuildScheduledEvent(guildID, eventID)
+//	if userCount {
+//		uri += "?with_user_count=true"
+//	}
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEventCreate creates a GuildScheduledEvent for a guild and returns it
+//// guildID   : The ID of a Guild
+//
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+//	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, nil, EndpointGuildScheduledEvents(guildID))
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEventEdit updates a specific event for a guild and returns it.
+//// guildID   : The ID of a Guild
+//
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+//	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// GuildScheduledEventDelete deletes a specific GuildScheduledEvent in a guild
+//// guildID   : The ID of a Guild
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventDelete(guildID, eventID string) (err error) {
+//	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//	return
+//}
+//
+//// GuildScheduledEventUsers returns an array of GuildScheduledEventUser for a particular event in a guild
+//// guildID    : The ID of a Guild
+//// eventID    : The ID of the event
+//// limit      : The maximum number of users to return (Max 100)
+//// withMember : Whether to include the member object in the response
+//// beforeID   : If is not empty all returned users entries will be before the given ID
+//// afterID    : If is not empty all returned users entries will be after the given ID
+//func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string) (st []*GuildScheduledEventUser, err error) {
+//	uri := EndpointGuildScheduledEventUsers(guildID, eventID)
+//
+//	queryParams := url.Values{}
+//	if withMember {
+//		queryParams.Set("with_member", "true")
+//	}
+//	if limit > 0 {
+//		queryParams.Set("limit", strconv.Itoa(limit))
+//	}
+//	if beforeID != "" {
+//		queryParams.Set("before", beforeID)
+//	}
+//	if afterID != "" {
+//		queryParams.Set("after", afterID)
+//	}
+//
+//	if len(queryParams) > 0 {
+//		uri += "?" + queryParams.Encode()
+//	}
+//
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// ----------------------------------------------------------------------
+//// Functions specific to auto moderation
+//// ----------------------------------------------------------------------
+//
+//// AutoModerationRules returns a list of auto moderation rules.
+//// guildID : ID of the guild
+//func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRules(guildID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRule returns an auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
+//// guildID : ID of the guild
+//// rule    : Rule data
+//func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRules(guildID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("POST", endpoint, rule, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//// rule    : New rule data
+//func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleDelete deletes an auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, nil, endpoint)
+//	return
+//}
