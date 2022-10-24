@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"reflect"
@@ -628,7 +629,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 }
 
 func CreateInteractionResponseSend(values ...interface{}) error {
-	logrus.Debug("Interaction Response doing it")
+	log.Print("Interaction Response doing it")
 	if len(values) < 1 {
 		return nil
 	}
@@ -717,26 +718,26 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 				Reader: &buf,
 				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05")),
 			}
-			logrus.Debug("File doing it")
+			log.Print("File doing it")
 
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
 			file.Name = common.CutStringShort(ToString(val), 64)
-			logrus.Debug("Filename doing it")
+			log.Print("Filename doing it")
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
 	if file != nil {
-		logrus.Debug("File true")
+		log.Print("File true")
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
 		data.Files = append(data.Files, file)
 	}
 
-	logrus.Debug("Sending")
+	log.Print("Sending")
 	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
