@@ -74,6 +74,127 @@ func (s *Session) request(method, urlStr, contentType string, b []byte, headers 
 	return s.RequestWithBucket(method, urlStr, contentType, b, headers, s.Ratelimiter.GetBucket(bucketID))
 }
 
+// request makes a (GET/POST/...) Requests to Discord REST API.
+// Sequence is the sequence number, if it fails with a 502 it will
+// retry with sequence+1 until it either succeeds or sequence >= session.MaxRestRetries
+func (s *Session) requestUpdated(method, urlStr, contentType string, b []byte, bucketID string, sequence int) (response []byte, err error) {
+	if bucketID == "" {
+		bucketID = strings.SplitN(urlStr, "?", 2)[0]
+	}
+	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucket(bucketID), sequence)
+}
+
+// RequestWithLockedBucket makes a request using a bucket that's already been locked
+func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int) (response []byte, err error) {
+	if s.Debug {
+		log.Printf("API REQUEST %8s :: %s\n", method, urlStr)
+		log.Printf("API REQUEST  PAYLOAD :: [%s]\n", string(b))
+	}
+
+	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
+	if err != nil {
+		bucket.Release(nil)
+		return
+	}
+
+	// Not used on initial login..
+	// TODO: Verify if a login, otherwise complain about no-token
+	if s.Token != "" {
+		req.Header.Set("authorization", s.Token)
+	}
+
+	// Discord's API returns a 400 Bad Request is Content-Type is set, but the
+	// request body is empty.
+	if b != nil {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	// TODO: Make a configurable static variable.
+	req.Header.Set("User-Agent", s.UserAgent)
+
+	if s.Debug {
+		for k, v := range req.Header {
+			log.Printf("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
+		}
+	}
+
+	resp, err := s.Client.Do(req)
+	if err != nil {
+		bucket.Release(nil)
+		return
+	}
+	defer func() {
+		err2 := resp.Body.Close()
+		if s.Debug && err2 != nil {
+			log.Println("error closing resp body")
+		}
+	}()
+
+	err = bucket.Release(resp.Header)
+	if err != nil {
+		return
+	}
+
+	response, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	if s.Debug {
+
+		log.Printf("API RESPONSE  STATUS :: %s\n", resp.Status)
+		for k, v := range resp.Header {
+			log.Printf("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
+		}
+		log.Printf("API RESPONSE    BODY :: [%s]\n\n\n", response)
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusCreated:
+	case http.StatusNoContent:
+	case http.StatusBadGateway:
+		// Retry sending request if possible
+		if sequence < s.MaxRestRetries {
+
+			s.log(LogInformational, "%s Failed (%s), Retrying...", urlStr, resp.Status)
+			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1)
+		} else {
+			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
+		}
+	case 429: // TOO MANY REQUESTS - Rate limiting
+		rl := TooManyRequests{}
+		err = Unmarshal(response, &rl)
+		if err != nil {
+			s.log(LogError, "rate limit unmarshal error, %s", err)
+			return
+		}
+
+		if s.ShouldRetryOnRateLimit {
+			s.log(LogInformational, "Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
+			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
+
+			time.Sleep(rl.RetryAfter)
+			// we can make the above smarter
+			// this method can cause longer delays than required
+
+			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence)
+		} else {
+			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
+		}
+	case http.StatusUnauthorized:
+		if strings.Index(s.Token, "Bot ") != 0 {
+			s.log(LogInformational, ErrUnauthorized.Error())
+			err = ErrUnauthorized
+		}
+		fallthrough
+	default: // Error condition
+		err = newRestError(req, resp, response)
+	}
+
+	return
+}
+
 type ReaderWithMockClose struct {
 	*bytes.Reader
 }
@@ -2318,7 +2439,7 @@ func (s *Session) WebhookExecuteComplex(webhookID int64, token string, wait bool
 			return
 		}
 
-		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointWebhookToken(webhookID, token))
+		response, err = s.requestUpdated("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointWebhookToken(webhookID, token))
 	} else {
 		response, err = s.RequestWithBucketID("POST", endpoint, data, nil, EndpointWebhookToken(webhookID, token))
 	}
