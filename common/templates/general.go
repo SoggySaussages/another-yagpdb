@@ -713,9 +713,9 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 			var buf bytes.Buffer
 			buf.Write(ToByte(val))
 			file = &discordgo.File{
-				ContentType: "image/png"
-				Reader: &buf
-				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05"))
+				ContentType: "image/png",
+				Reader: &buf,
+				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05")),
 			}
 			logrus.Debug("File doing it")
 
