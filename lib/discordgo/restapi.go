@@ -2725,7 +2725,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // interaction : Interaction instance.
 // resp        : Response message data.
 func (s *Session) InteractionRespond(interactionID int64, token string, resp *InteractionResponse) error {
-	endpoint := EndpointInteractionResponse(interactionID, token)
+	endpoint := EndpointInteractionCallback(interactionID, token)
 
 	if resp.Data != nil && len(resp.Data.Files) > 0 {
 		contentType, body, err := MultipartBodyWithJSON(resp, resp.Data.Files)
@@ -2733,7 +2733,7 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 			return err
 		}
 
-		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
+		_, err = s.request("POST", endpoint, contentType, body, nil, endpoint, "0")
 		return err
 	}
 
