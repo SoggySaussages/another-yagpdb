@@ -2722,96 +2722,116 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 	return
 }
 
-// ChannelMessageSendComplex sends a message to the given channel.
-// channelID : The ID of a Channel.
-// data      : The message struct to send.
-func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
-	debug := bytes.NewBufferString("").Bytes()
-	logrus.Debug("Complex Interaction Response started")
-	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
-	st = ""
+// InteractionRespond creates the response to an interaction.
+// interaction : Interaction instance.
+// resp        : Response message data.
+func (s *Session) InteractionRespond(interactionID int64, token string, resp *InteractionResponse) error {
+	endpoint := EndpointInteractionResponse(interactionID, token)
 
-	// TODO: Remove this when compatibility is not required.
-	files := data.Data.Files
-	if data.Data.File != nil {
-		if files == nil {
-			files = []*File{data.Data.File}
-		} else {
-			err = fmt.Errorf("cannot specify both File and Files")
-			return
+	if resp.Data != nil && len(resp.Data.Files) > 0 {
+		contentType, body, err := MultipartBodyWithJSON(resp, resp.Data.Files)
+		if err != nil {
+			return err
 		}
+
+		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
+		return err
 	}
 
-//	var response []byte
-	if len(files) > 0 {
-		logrus.Debug("Writing payload")
-		body := &bytes.Buffer{}
-		bodywriter := multipart.NewWriter(body)
-
-		var payload []byte
-		payload, err = json.Marshal(data)
-		if err != nil {
-			return
-		}
-
-		var p io.Writer
-
-		h := make(textproto.MIMEHeader)
-		h.Set("Content-Disposition", `form-data; name="payload_json"`)
-		h.Set("Content-Type", "application/json")
-
-		p, err = bodywriter.CreatePart(h)
-		if err != nil {
-			return
-		}
-
-		if _, err = p.Write(payload); err != nil {
-			return
-		}
-
-		logrus.Debug("Ranging files")
-		for i, file := range files {
-			logrus.Debugf("File %d", i)
-			h := make(textproto.MIMEHeader)
-			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
-			contentType := file.ContentType
-			if contentType == "" {
-				contentType = "application/octet-stream"
-			}
-			h.Set("Content-Type", contentType)
-
-			p, err = bodywriter.CreatePart(h)
-			if err != nil {
-				return
-			}
-
-			if _, err = io.Copy(p, file.Reader); err != nil {
-				return
-			}
-		}
-
-		err = bodywriter.Close()
-		if err != nil {
-			return
-		}
-
-		logrus.Debug("POSTing")
-		logrus.Debug(bodywriter.FormDataContentType())
-		logrus.Debug(body.String())
-
-//		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
-		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
-	} else {
-		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
-	}
-	dbgBuf := bytes.NewBuffer(debug)
-	logrus.Debug(dbgBuf.String())
-	if err != nil {
-		return
-	}
-	
-	return
+	_, err := s.RequestWithBucketID("POST", endpoint, *resp, endpoint)
+	return err
 }
+
+//// ChannelMessageSendComplex sends a message to the given channel.
+//// channelID : The ID of a Channel.
+//// data      : The message struct to send.
+//func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
+//	debug := bytes.NewBufferString("").Bytes()
+//	logrus.Debug("Complex Interaction Response started")
+//	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
+//	st = ""
+//
+//	// TODO: Remove this when compatibility is not required.
+//	files := data.Data.Files
+//	if data.Data.File != nil {
+//		if files == nil {
+//			files = []*File{data.Data.File}
+//		} else {
+//			err = fmt.Errorf("cannot specify both File and Files")
+//			return
+//		}
+//	}
+//
+////	var response []byte
+//	if len(files) > 0 {
+//		logrus.Debug("Writing payload")
+//		body := &bytes.Buffer{}
+//		bodywriter := multipart.NewWriter(body)
+//
+//		var payload []byte
+//		payload, err = json.Marshal(data)
+//		if err != nil {
+//			return
+//		}
+//
+//		var p io.Writer
+//
+//		h := make(textproto.MIMEHeader)
+//		h.Set("Content-Disposition", `form-data; name="payload_json"`)
+//		h.Set("Content-Type", "application/json")
+//
+//		p, err = bodywriter.CreatePart(h)
+//		if err != nil {
+//			return
+//		}
+//
+//		if _, err = p.Write(payload); err != nil {
+//			return
+//		}
+//
+//		logrus.Debug("Ranging files")
+//		for i, file := range files {
+//			logrus.Debugf("File %d", i)
+//			h := make(textproto.MIMEHeader)
+//			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+//			contentType := file.ContentType
+//			if contentType == "" {
+//				contentType = "application/octet-stream"
+//			}
+//			h.Set("Content-Type", contentType)
+//
+//			p, err = bodywriter.CreatePart(h)
+//			if err != nil {
+//				return
+//			}
+//
+//			if _, err = io.Copy(p, file.Reader); err != nil {
+//				return
+//			}
+//		}
+//
+//		err = bodywriter.Close()
+//		if err != nil {
+//			return
+//		}
+//
+//		logrus.Debug("POSTing")
+//		logrus.Debug(bodywriter.FormDataContentType())
+//		logrus.Debug(body.String())
+//
+////		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
+//		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+//	} else {
+//		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
+//	}
+//	dbgBuf := bytes.NewBuffer(debug)
+//	logrus.Debug(dbgBuf.String())
+//	if err != nil {
+//		return
+//	}
+//	
+//	return
+//}
 
 // GetOriginalInteractionResponse Returns the initial Interaction response. Functions the same as Get Webhook Message.
 // GET /webhooks/{application.id}/{interaction.token}/messages/@original
@@ -2875,5 +2895,244 @@ func (s *Session) EditFollowupMessage(applicationID int64, token string, message
 // DELETE /webhooks/{application.id}/{interaction.token}/messages/{message.id}
 func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messageID int64) (err error) {
 	_, err = s.RequestWithBucketID("DELETE", EndpointInteractionFollowupMessage(applicationID, token, messageID), nil, nil, EndpointInteractionFollowupMessage(0, "", 0))
+	return
+}
+
+// ------------------------------------------------------------------------------------------------
+// Functions specific to stage instances
+// ------------------------------------------------------------------------------------------------
+
+// StageInstanceCreate creates and returns a new Stage instance associated to a Stage channel.
+// data : Parameters needed to create a stage instance.
+// data : The data of the Stage instance to create
+func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInstance, err error) {
+	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, EndpointStageInstances)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &si)
+	return
+}
+
+// StageInstance will retrieve a Stage instance by ID of the Stage channel.
+// channelID : The ID of the Stage channel
+func (s *Session) StageInstance(channelID string) (si *StageInstance, err error) {
+	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, EndpointStageInstance(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &si)
+	return
+}
+
+// StageInstanceEdit will edit a Stage instance by ID of the Stage channel.
+// channelID : The ID of the Stage channel
+// data : The data to edit the Stage instance
+func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams) (si *StageInstance, err error) {
+
+	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, EndpointStageInstance(channelID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &si)
+	return
+}
+
+// StageInstanceDelete will delete a Stage instance by ID of the Stage channel.
+// channelID : The ID of the Stage channel
+func (s *Session) StageInstanceDelete(channelID string) (err error) {
+	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, EndpointStageInstance(channelID))
+	return
+}
+
+// ------------------------------------------------------------------------------------------------
+// Functions specific to guilds scheduled events
+// ------------------------------------------------------------------------------------------------
+
+// GuildScheduledEvents returns an array of GuildScheduledEvent for a guild
+// guildID        : The ID of a Guild
+// userCount      : Whether to include the user count in the response
+func (s *Session) GuildScheduledEvents(guildID string, userCount bool) (st []*GuildScheduledEvent, err error) {
+	uri := EndpointGuildScheduledEvents(guildID)
+	if userCount {
+		uri += "?with_user_count=true"
+	}
+
+	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEvents(guildID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// GuildScheduledEvent returns a specific GuildScheduledEvent in a guild
+// guildID        : The ID of a Guild
+// eventID        : The ID of the event
+// userCount      : Whether to include the user count in the response
+func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (st *GuildScheduledEvent, err error) {
+	uri := EndpointGuildScheduledEvent(guildID, eventID)
+	if userCount {
+		uri += "?with_user_count=true"
+	}
+
+	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEvent(guildID, eventID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// GuildScheduledEventCreate creates a GuildScheduledEvent for a guild and returns it
+// guildID   : The ID of a Guild
+// eventID   : The ID of the event
+func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, EndpointGuildScheduledEvents(guildID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// GuildScheduledEventEdit updates a specific event for a guild and returns it.
+// guildID   : The ID of a Guild
+// eventID   : The ID of the event
+func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, EndpointGuildScheduledEvent(guildID, eventID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// GuildScheduledEventDelete deletes a specific GuildScheduledEvent in a guild
+// guildID   : The ID of a Guild
+// eventID   : The ID of the event
+func (s *Session) GuildScheduledEventDelete(guildID, eventID string) (err error) {
+	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, EndpointGuildScheduledEvent(guildID, eventID))
+	return
+}
+
+// GuildScheduledEventUsers returns an array of GuildScheduledEventUser for a particular event in a guild
+// guildID    : The ID of a Guild
+// eventID    : The ID of the event
+// limit      : The maximum number of users to return (Max 100)
+// withMember : Whether to include the member object in the response
+// beforeID   : If is not empty all returned users entries will be before the given ID
+// afterID    : If is not empty all returned users entries will be after the given ID
+func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string) (st []*GuildScheduledEventUser, err error) {
+	uri := EndpointGuildScheduledEventUsers(guildID, eventID)
+
+	queryParams := url.Values{}
+	if withMember {
+		queryParams.Set("with_member", "true")
+	}
+	if limit > 0 {
+		queryParams.Set("limit", strconv.Itoa(limit))
+	}
+	if beforeID != "" {
+		queryParams.Set("before", beforeID)
+	}
+	if afterID != "" {
+		queryParams.Set("after", afterID)
+	}
+
+	if len(queryParams) > 0 {
+		uri += "?" + queryParams.Encode()
+	}
+
+	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// ----------------------------------------------------------------------
+// Functions specific to auto moderation
+// ----------------------------------------------------------------------
+
+// AutoModerationRules returns a list of auto moderation rules.
+// guildID : ID of the guild
+func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRules(guildID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRule returns an auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
+// guildID : ID of the guild
+// rule    : Rule data
+func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRules(guildID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("POST", endpoint, rule, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+// rule    : New rule data
+func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleDelete deletes an auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, endpoint)
 	return
 }

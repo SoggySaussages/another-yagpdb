@@ -632,6 +632,8 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		return nil
 	}
 
+	file := &discordgo.File{}
+
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
 //	}
@@ -644,7 +646,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
-	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+	file.Name = "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -710,33 +712,28 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 //			}
 			var buf bytes.Buffer
 			buf.Write(ToByte(val))
+			file.ContentType = "image/png"
+			file.Reader = &buf
 
-			data.File = &discordgo.File{
-				ContentType: "image/png",
-				Reader:      &buf,
-			}
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
-			filename = common.CutStringShort(ToString(val), 64)
+			file.Name = common.CutStringShort(ToString(val), 64)
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
-	if data.File != nil {
+	if file.Reader != nil {
 		// We hardcode the extension to .png because we're sending a png :)
-		data.File.Name = filename // + ".png"
+		// data.File.Name = filename // + ".png"
 
-		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseUpdateMessage,
-			Data: data,
-		})
-	} else {
-	common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		data.Files = (append data.Files, file)
+	}
+
+	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: data,
 	})
-}
 
 	if err != nil {
 		return err
@@ -750,6 +747,8 @@ func EditComponentMessageSend(values ...interface{}) error {
 		return nil
 	}
 
+	file := &discordgo.File{}
+
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
 //	}
@@ -762,7 +761,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
-	filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+	file.Name = "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -828,34 +827,28 @@ func EditComponentMessageSend(values ...interface{}) error {
 //			}
 			var buf bytes.Buffer
 			buf.Write(ToByte(val))
-
-			data.File = &discordgo.File{
-				ContentType: "image/png",
-				Reader:      &buf,
-			}
+			file.ContentType = "image/png"
+			file.Reader = &buf
+			
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
-			filename = common.CutStringShort(ToString(val), 64)
+			file.Name = common.CutStringShort(ToString(val), 64)
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
-
 	}
-	if data.File != nil {
+
+	if file.Reader != nil {
 		// We hardcode the extension to .png because we're sending a png :)
-		data.File.Name = filename // + ".png"
+		// data.File.Name = filename // + ".png"
 
-		common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseUpdateMessage,
-			Data: data,
-		})
-	} else {
+		data.Files = (append data.Files, file)
+	}
 
-	common.BotSession.CreateInteractionResponseComplex(id, token, &discordgo.InteractionResponse{
+	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: data,
 	})
-}
 
 	if err != nil {
 		return err
@@ -1014,7 +1007,7 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
@@ -1060,7 +1053,7 @@ func DeferResponse(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: flags,
@@ -1101,7 +1094,7 @@ func DeferEditResponse(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredMessageUpdate,
 	})
 	if err != nil {
