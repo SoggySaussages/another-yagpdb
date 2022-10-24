@@ -725,7 +725,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		}
 
 	}
-	if fileset != nil {
+	if fileset {
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
