@@ -628,12 +628,12 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 }
 
 func CreateInteractionResponseSend(values ...interface{}) error {
+	logrus.Debug("Interaction Response doing it")
 	if len(values) < 1 {
 		return nil
 	}
 
-	file := &discordgo.File{}
-	fileset := false
+	var file *discordgo.File
 
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
@@ -647,7 +647,6 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
-	file.Name = "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -713,25 +712,31 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 //			}
 			var buf bytes.Buffer
 			buf.Write(ToByte(val))
-			file.ContentType = "image/png"
-			file.Reader = &buf
-			fileset = true
+			file = &discordgo.File{
+				ContentType: "image/png"
+				Reader: &buf
+				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05"))
+			}
+			logrus.Debug("File doing it")
 
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
 			file.Name = common.CutStringShort(ToString(val), 64)
+			logrus.Debug("Filename doing it")
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 
 	}
-	if fileset {
+	if file != nil {
+		logrus.Debug("File true")
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
 		data.Files = append(data.Files, file)
 	}
 
+	logrus.Debug("Sending")
 	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
