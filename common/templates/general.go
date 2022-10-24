@@ -731,7 +731,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	}
 
 	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseUpdateMessage,
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
 
