@@ -2737,7 +2737,7 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 		return err
 	}
 
-	_, err := s.RequestWithBucketID("POST", endpoint, *resp, endpoint)
+	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
 	return err
 }
 
@@ -2905,7 +2905,7 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 // data : Parameters needed to create a stage instance.
 // data : The data of the Stage instance to create
 func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInstance, err error) {
-	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, EndpointStageInstances)
+	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, nil, EndpointStageInstances)
 	if err != nil {
 		return
 	}
@@ -2917,7 +2917,7 @@ func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInsta
 // StageInstance will retrieve a Stage instance by ID of the Stage channel.
 // channelID : The ID of the Stage channel
 func (s *Session) StageInstance(channelID string) (si *StageInstance, err error) {
-	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, EndpointStageInstance(channelID))
+	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
 	if err != nil {
 		return
 	}
@@ -2931,7 +2931,7 @@ func (s *Session) StageInstance(channelID string) (si *StageInstance, err error)
 // data : The data to edit the Stage instance
 func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams) (si *StageInstance, err error) {
 
-	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, EndpointStageInstance(channelID))
+	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, nil, EndpointStageInstance(channelID))
 	if err != nil {
 		return
 	}
@@ -2943,7 +2943,7 @@ func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams)
 // StageInstanceDelete will delete a Stage instance by ID of the Stage channel.
 // channelID : The ID of the Stage channel
 func (s *Session) StageInstanceDelete(channelID string) (err error) {
-	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, EndpointStageInstance(channelID))
+	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
 	return
 }
 
@@ -2960,7 +2960,7 @@ func (s *Session) GuildScheduledEvents(guildID string, userCount bool) (st []*Gu
 		uri += "?with_user_count=true"
 	}
 
-	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEvents(guildID))
+	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvents(guildID))
 	if err != nil {
 		return
 	}
@@ -2979,7 +2979,7 @@ func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (
 		uri += "?with_user_count=true"
 	}
 
-	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEvent(guildID, eventID))
+	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
 	if err != nil {
 		return
 	}
@@ -2992,7 +2992,7 @@ func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (
 // guildID   : The ID of a Guild
 // eventID   : The ID of the event
 func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, EndpointGuildScheduledEvents(guildID))
+	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, nil, EndpointGuildScheduledEvents(guildID))
 	if err != nil {
 		return
 	}
@@ -3005,7 +3005,7 @@ func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildSchedule
 // guildID   : The ID of a Guild
 // eventID   : The ID of the event
 func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, EndpointGuildScheduledEvent(guildID, eventID))
+	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, nil, EndpointGuildScheduledEvent(guildID, eventID))
 	if err != nil {
 		return
 	}
@@ -3018,7 +3018,7 @@ func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildS
 // guildID   : The ID of a Guild
 // eventID   : The ID of the event
 func (s *Session) GuildScheduledEventDelete(guildID, eventID string) (err error) {
-	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, EndpointGuildScheduledEvent(guildID, eventID))
+	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
 	return
 }
 
@@ -3050,7 +3050,7 @@ func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, w
 		uri += "?" + queryParams.Encode()
 	}
 
-	body, err := s.RequestWithBucketID("GET", uri, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
+	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
 	if err != nil {
 		return
 	}
@@ -3069,7 +3069,7 @@ func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule,
 	endpoint := EndpointGuildAutoModerationRules(guildID)
 
 	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
 	if err != nil {
 		return
 	}
@@ -3085,7 +3085,7 @@ func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModeration
 	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
 
 	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
 	if err != nil {
 		return
 	}
@@ -3101,7 +3101,7 @@ func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationR
 	endpoint := EndpointGuildAutoModerationRules(guildID)
 
 	var body []byte
-	body, err = s.RequestWithBucketID("POST", endpoint, rule, endpoint)
+	body, err = s.RequestWithBucketID("POST", endpoint, rule, nil, endpoint)
 	if err != nil {
 		return
 	}
@@ -3118,7 +3118,7 @@ func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModer
 	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
 
 	var body []byte
-	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, endpoint)
+	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, nil, endpoint)
 	if err != nil {
 		return
 	}
@@ -3132,6 +3132,6 @@ func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModer
 // ruleID  : ID of the auto moderation rule
 func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
 	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
-	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, endpoint)
+	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, nil, endpoint)
 	return
 }
