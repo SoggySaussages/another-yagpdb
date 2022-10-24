@@ -633,6 +633,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	}
 
 	file := &discordgo.File{}
+	fileset := false
 
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
@@ -714,6 +715,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 			buf.Write(ToByte(val))
 			file.ContentType = "image/png"
 			file.Reader = &buf
+			fileset = true
 
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
@@ -723,7 +725,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		}
 
 	}
-	if file.Reader != nil {
+	if fileset != nil {
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
