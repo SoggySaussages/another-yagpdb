@@ -2728,7 +2728,7 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 	endpoint := EndpointInteractionCallback(interactionID, token)
 
 	if resp.Data != nil && len(resp.Data.Files) > 0 {
-		contentType, body, err := MultipartBodyWithJSON(resp, resp.Data.Files)
+		contentType, body, err := MultipartBodyWithJSONNew(resp, resp.Data.Files)
 		if err != nil {
 			return err
 		}
