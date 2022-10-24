@@ -45,6 +45,59 @@ var (
 	ErrTokenInvalid            = errors.New("Invalid token provided, it has been marked as invalid")
 )
 
+var (
+	// Marshal defines function used to encode JSON payloads
+	Marshal func(v interface{}) ([]byte, error) = json.Marshal
+	// Unmarshal defines function used to decode JSON payloads
+	Unmarshal func(src []byte, v interface{}) error = json.Unmarshal
+)
+
+// RESTError stores error information about a request with a bad response code.
+// Message is not always present, there are cases where api calls can fail
+// without returning a json message.
+type RESTError struct {
+	Request      *http.Request
+	Response     *http.Response
+	ResponseBody []byte
+
+	Message *APIErrorMessage // Message may be nil.
+}
+
+// newRestError returns a new REST API error.
+func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTError {
+	restErr := &RESTError{
+		Request:      req,
+		Response:     resp,
+		ResponseBody: body,
+	}
+
+	// Attempt to decode the error and assume no message was provided if it fails
+	var msg *APIErrorMessage
+	err := Unmarshal(body, &msg)
+	if err == nil {
+		restErr.Message = msg
+	}
+
+	return restErr
+}
+
+// Error returns a Rest API Error with its status code and body.
+func (r RESTError) Error() string {
+	return "HTTP " + r.Response.Status + ", " + string(r.ResponseBody)
+}
+
+// RateLimitError is returned when a request exceeds a rate limit
+// and ShouldRetryOnRateLimit is false. The request may be manually
+// retried after waiting the duration specified by RetryAfter.
+type RateLimitError struct {
+	*RateLimit
+}
+
+// Error returns a rate limit error with rate limited endpoint and retry time.
+func (e RateLimitError) Error() string {
+	return "Rate limit exceeded on " + e.URL + ", retry after " + e.RetryAfter.String()
+}
+
 // Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 func (s *Session) Request(method, urlStr string, data interface{}, headers map[string]string) (response []byte, err error) {
 	return s.RequestWithBucketID(method, urlStr, data, headers, strings.SplitN(urlStr, "?", 2)[0])
@@ -2854,7 +2907,7 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 			return err
 		}
 		log.Print("Files")
-		_, err = s.request("POST", endpoint, contentType, body, nil, endpoint)
+		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
 		return err
 	}
 

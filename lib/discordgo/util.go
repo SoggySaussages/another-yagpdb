@@ -71,7 +71,7 @@ func MultipartBodyWithJSONNew(data interface{}, files []*File) (requestContentTy
 	body := &bytes.Buffer{}
 	bodywriter := multipart.NewWriter(body)
 
-	payload, err := json.Marshal(data)
+	payload, err := Marshal(data)
 	if err != nil {
 		return
 	}
