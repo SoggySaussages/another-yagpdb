@@ -2733,7 +2733,7 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 			return err
 		}
 
-		_, err = s.request("POST", endpoint, contentType, body, nil, endpoint, "0")
+		_, err = s.request("POST", endpoint, contentType, body, endpoint, "0")
 		return err
 	}
 
