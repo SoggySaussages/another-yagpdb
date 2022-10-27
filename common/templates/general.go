@@ -1015,7 +1015,7 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseModal,
 		Data: &discordgo.InteractionResponseData{
 			CustomID: customID,
@@ -1061,7 +1061,7 @@ func DeferResponse(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: flags,
@@ -1102,7 +1102,7 @@ func DeferEditResponse(values ...interface{}) error {
 		}
 
 	}
-	err = common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredMessageUpdate,
 	})
 	if err != nil {
