@@ -2933,7 +2933,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 	var files []*File
 	files = idata.Files
 
-	var response []byte
+//	var response []byte
 	if len(files) > 0 {
 		logrus.Debug("Files happening")
 		body := &bytes.Buffer{}
