@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // All error constants
@@ -2493,7 +2494,7 @@ func (s *Session) WebhookExecuteComplex(webhookID int64, token string, wait bool
 			return
 		}
 
-		response, err = s.requestUpdated("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointWebhookToken(webhookID, token))
+		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointWebhookToken(webhookID, token))
 	} else {
 		response, err = s.RequestWithBucketID("POST", endpoint, data, nil, EndpointWebhookToken(webhookID, token))
 	}
@@ -2896,26 +2897,26 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 	return
 }
 
-// InteractionRespond creates the response to an interaction.
-// interaction : Interaction instance.
-// resp        : Response message data.
-func (s *Session) InteractionRespond(interactionID int64, token string, resp *InteractionResponse) error {
-	endpoint := EndpointInteractionCallback(interactionID, token)
-
-	if resp.Data != nil && len(resp.Data.Files) > 0 {
-		contentType, body, err := MultipartBodyWithJSONNew(resp, resp.Data.Files)
-		if err != nil {
-			return err
-		}
-		log.Print("Files")
-		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
-		return err
-	}
-
-	log.Print("No Files")
-	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
-	return err
-}
+//// InteractionRespond creates the response to an interaction.
+//// interaction : Interaction instance.
+//// resp        : Response message data.
+//func (s *Session) InteractionRespond(interactionID int64, token string, resp *InteractionResponse) error {
+//	endpoint := EndpointInteractionCallback(interactionID, token)
+//
+//	if resp.Data != nil && len(resp.Data.Files) > 0 {
+//		contentType, body, err := MultipartBodyWithJSONNew(resp, resp.Data.Files)
+//		if err != nil {
+//			return err
+//		}
+//		log.Print("Files")
+//		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
+//		return err
+//	}
+//
+//	log.Print("No Files")
+//	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
+//	return err
+//}
 
 // WebhookExecuteComplex executes a webhook.
 // webhookID: The ID of a webhook.
@@ -2939,7 +2940,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 		bodywriter := multipart.NewWriter(body)
 
 		var payload []byte
-		payload, err = json.Marshal(*InteractionResponse{
+		payload, err = json.Marshal(InteractionResponse{
 			Type: itype,
 			Data: idata,
 		})
@@ -2986,7 +2987,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 			return
 		}
 
-		response, err = s.requestUpdated("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
 		logrus.Debug("Files didn't happen")
 		response, err = s.RequestWithBucketID("POST", endpoint, *InteractionResponse{
