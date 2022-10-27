@@ -2933,7 +2933,6 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 	var files []*File
 	files = idata.Files
 
-	response := bytes.NewBufferString("").Bytes()
 	if len(files) > 0 {
 		logrus.Debug("Files happening")
 		body := &bytes.Buffer{}
@@ -2987,10 +2986,10 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 			return
 		}
 
-		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+		_, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
 		logrus.Debug("Files didn't happen")
-		response, err = s.RequestWithBucketID("POST", endpoint, InteractionResponse{
+		_, err = s.RequestWithBucketID("POST", endpoint, InteractionResponse{
 			Type: itype,
 			Data: idata,
 		}, nil, EndpointWebhookToken(0, ""))
