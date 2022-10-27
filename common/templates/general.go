@@ -850,7 +850,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
-		data.Files = append(data.Files, file)
+		data.Attachments = append(data.Attachments, file)
 	}
 
 	common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
