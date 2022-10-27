@@ -738,7 +738,7 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 	}
 
 	log.Print("Sending")
-	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+	common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: data,
 	})
@@ -853,7 +853,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 		data.Files = append(data.Files, file)
 	}
 
-	common.BotSession.InteractionRespond(id, token, &discordgo.InteractionResponse{
+	common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseUpdateMessage,
 		Data: data,
 	})
