@@ -2934,7 +2934,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 	files = idata.Files
 
 	var response []byte
-	response = bytes.NewBufferString("").Bytes
+	response = bytes.NewBufferString("").Bytes()
 	if len(files) > 0 {
 		logrus.Debug("Files happening")
 		body := &bytes.Buffer{}
