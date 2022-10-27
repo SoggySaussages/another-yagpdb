@@ -33,7 +33,7 @@ var Command = &commands.YAGCommand{
 		gs := bot.State.GetGuild(data.GuildData.GS.ID)
 		cs := gs.GetChannel(data.ChannelID)
 		ms := data.GuildData.MS
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, data.Args[1].Str(), data.SlashCommandTriggerData.Interaction.Token data.SlashCommandTriggerData.Interaction.ID, 0, ""))
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, data.Args[1].Str(), data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, ""))
 		body, _ := customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
 		return body, nil
 	}}//
