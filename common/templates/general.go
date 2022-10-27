@@ -16,6 +16,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
+	"github.com/sirupsen/logrus"
 )
 
 // dictionary creates a map[string]interface{} from the given parameters by
@@ -708,11 +709,12 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		case "token":
 			token = ToString(val)
 		case "file":
-//			if len(stringFile) > 100000 {
-//				return nil, errors.New("file length for send message builder exceeded size limit")
-//			}
+			stringFile := ToString(val)
+			//			if len(stringFile) > 100000 {
+			//				return nil, errors.New("file length for send message builder exceeded size limit")
+			//			}
 			var buf bytes.Buffer
-			buf.Write(ToByte(val))
+			buf.WriteString(stringFile)
 			file = &discordgo.File{
 				ContentType: "image/png",
 				Reader: &buf,
@@ -830,13 +832,15 @@ func EditComponentMessageSend(values ...interface{}) error {
 		case "token":
 			token = ToString(val)
 		case "file":
-//			if len(stringFile) > 100000 {
-//				return nil, errors.New("file length for send message builder exceeded size limit")
-//			}
+			stringFile := ToString(val)
+			//			if len(stringFile) > 100000 {
+			//				return nil, errors.New("file length for send message builder exceeded size limit")
+			//			}
 			var buf bytes.Buffer
-			buf.Write(ToByte(val))
+			buf.WriteString(stringFile)
 			file.ContentType = "image/png"
 			file.Reader = &buf
+			file.Name = fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05"))
 			
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
