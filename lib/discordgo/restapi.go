@@ -53,39 +53,39 @@ var (
 	Unmarshal func(src []byte, v interface{}) error = json.Unmarshal
 )
 
-// RESTError stores error information about a request with a bad response code.
-// Message is not always present, there are cases where api calls can fail
-// without returning a json message.
-type RESTError struct {
-	Request      *http.Request
-	Response     *http.Response
-	ResponseBody []byte
-
-	Message *APIErrorMessage // Message may be nil.
-}
-
-// newRestError returns a new REST API error.
-func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTError {
-	restErr := &RESTError{
-		Request:      req,
-		Response:     resp,
-		ResponseBody: body,
-	}
-
-	// Attempt to decode the error and assume no message was provided if it fails
-	var msg *APIErrorMessage
-	err := Unmarshal(body, &msg)
-	if err == nil {
-		restErr.Message = msg
-	}
-
-	return restErr
-}
-
-// Error returns a Rest API Error with its status code and body.
-func (r RESTError) Error() string {
-	return "HTTP " + r.Response.Status + ", " + string(r.ResponseBody)
-}
+//// RESTError stores error information about a request with a bad response code.
+//// Message is not always present, there are cases where api calls can fail
+//// without returning a json message.
+//type RESTError struct {
+//	Request      *http.Request
+//	Response     *http.Response
+//	ResponseBody []byte
+//
+//	Message *APIErrorMessage // Message may be nil.
+//}
+//
+//// newRestError returns a new REST API error.
+//func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTError {
+//	restErr := &RESTError{
+//		Request:      req,
+//		Response:     resp,
+//		ResponseBody: body,
+//	}
+//
+//	// Attempt to decode the error and assume no message was provided if it fails
+//	var msg *APIErrorMessage
+//	err := Unmarshal(body, &msg)
+//	if err == nil {
+//		restErr.Message = msg
+//	}
+//
+//	return restErr
+//}
+//
+//// Error returns a Rest API Error with its status code and body.
+//func (r RESTError) Error() string {
+//	return "HTTP " + r.Response.Status + ", " + string(r.ResponseBody)
+//}
 
 // RateLimitError is returned when a request exceeds a rate limit
 // and ShouldRetryOnRateLimit is false. The request may be manually
@@ -2990,7 +2990,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
 	} else {
 		logrus.Debug("Files didn't happen")
-		response, err = s.RequestWithBucketID("POST", endpoint, *InteractionResponse{
+		response, err = s.RequestWithBucketID("POST", endpoint, InteractionResponse{
 			Type: itype,
 			Data: idata,
 		}, nil, EndpointWebhookToken(0, ""))
