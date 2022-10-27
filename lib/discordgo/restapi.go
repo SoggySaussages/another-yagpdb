@@ -2931,7 +2931,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 
 	// TODO: Remove this when compatibility is not required.
 	var files []*File
-	files = idata.Files
+	files = idata.Attachments
 
 	if len(files) > 0 {
 		logrus.Debug("Files happening")
