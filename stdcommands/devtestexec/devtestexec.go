@@ -2,6 +2,7 @@ package devtestexec
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common/templates"
