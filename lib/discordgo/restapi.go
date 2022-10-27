@@ -95,7 +95,7 @@ type RateLimitError struct {
 
 // Error returns a rate limit error with rate limited endpoint and retry time.
 func (e RateLimitError) Error() string {
-	return "Rate limit exceeded on " + e.URL + ", retry after " + e.RetryAfter.String()
+	return "Rate limit exceeded on " + e.URL + ", retry after " + strconv.FormatFloat(e.RetryAfter, 'E', -1, 64)
 }
 
 // Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
@@ -127,126 +127,127 @@ func (s *Session) request(method, urlStr, contentType string, b []byte, headers 
 	return s.RequestWithBucket(method, urlStr, contentType, b, headers, s.Ratelimiter.GetBucket(bucketID))
 }
 
-// request makes a (GET/POST/...) Requests to Discord REST API.
-// Sequence is the sequence number, if it fails with a 502 it will
-// retry with sequence+1 until it either succeeds or sequence >= session.MaxRestRetries
-func (s *Session) requestUpdated(method, urlStr, contentType string, b []byte, bucketID string, sequence int) (response []byte, err error) {
-	if bucketID == "" {
-		bucketID = strings.SplitN(urlStr, "?", 2)[0]
-	}
-	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucket(bucketID), sequence)
-}
-
-// RequestWithLockedBucket makes a request using a bucket that's already been locked
-func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int) (response []byte, err error) {
-	if s.Debug {
-		log.Printf("API REQUEST %8s :: %s\n", method, urlStr)
-		log.Printf("API REQUEST  PAYLOAD :: [%s]\n", string(b))
-	}
-
-	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
-	if err != nil {
-		bucket.Release(nil)
-		return
-	}
-
-	// Not used on initial login..
-	// TODO: Verify if a login, otherwise complain about no-token
-	if s.Token != "" {
-		req.Header.Set("authorization", s.Token)
-	}
-
-	// Discord's API returns a 400 Bad Request is Content-Type is set, but the
-	// request body is empty.
-	if b != nil {
-		req.Header.Set("Content-Type", contentType)
-	}
-
-	// TODO: Make a configurable static variable.
-	req.Header.Set("User-Agent", s.UserAgent)
-
-	if s.Debug {
-		for k, v := range req.Header {
-			log.Printf("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
-		}
-	}
-
-	resp, err := s.Client.Do(req)
-	if err != nil {
-		bucket.Release(nil)
-		return
-	}
-	defer func() {
-		err2 := resp.Body.Close()
-		if s.Debug && err2 != nil {
-			log.Println("error closing resp body")
-		}
-	}()
-
-	err = bucket.Release(resp.Header)
-	if err != nil {
-		return
-	}
-
-	response, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	if s.Debug {
-
-		log.Printf("API RESPONSE  STATUS :: %s\n", resp.Status)
-		for k, v := range resp.Header {
-			log.Printf("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
-		}
-		log.Printf("API RESPONSE    BODY :: [%s]\n\n\n", response)
-	}
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-	case http.StatusCreated:
-	case http.StatusNoContent:
-	case http.StatusBadGateway:
-		// Retry sending request if possible
-		if sequence < s.MaxRestRetries {
-
-			s.log(LogInformational, "%s Failed (%s), Retrying...", urlStr, resp.Status)
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1)
-		} else {
-			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
-		}
-	case 429: // TOO MANY REQUESTS - Rate limiting
-		rl := TooManyRequests{}
-		err = Unmarshal(response, &rl)
-		if err != nil {
-			s.log(LogError, "rate limit unmarshal error, %s", err)
-			return
-		}
-
-		if s.ShouldRetryOnRateLimit {
-			s.log(LogInformational, "Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
-			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
-
-			time.Sleep(rl.RetryAfter)
-			// we can make the above smarter
-			// this method can cause longer delays than required
-
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence)
-		} else {
-			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
-		}
-	case http.StatusUnauthorized:
-		if strings.Index(s.Token, "Bot ") != 0 {
-			s.log(LogInformational, ErrUnauthorized.Error())
-			err = ErrUnauthorized
-		}
-		fallthrough
-	default: // Error condition
-		err = newRestError(req, resp, response)
-	}
-
-	return
-}
+//// request makes a (GET/POST/...) Requests to Discord REST API.
+//// Sequence is the sequence number, if it fails with a 502 it will
+//// retry with sequence+1 until it either succeeds or sequence >= session.MaxRestRetries
+//func (s *Session) requestUpdated(method, urlStr, contentType string, b []byte, bucketID string, sequence int) (response []byte, err error) {
+//	if bucketID == "" {
+//		bucketID = strings.SplitN(urlStr, "?", 2)[0]
+//	}
+//	bucket, _ := s.Ratelimiter.LockBucket(bucketID)
+//	return s.RequestWithLockedBucket(method, urlStr, contentType, b, bucket, sequence)
+//}
+//
+//// RequestWithLockedBucket makes a request using a bucket that's already been locked
+//func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int) (response []byte, err error) {
+//	if s.Debug {
+//		log.Printf("API REQUEST %8s :: %s\n", method, urlStr)
+//		log.Printf("API REQUEST  PAYLOAD :: [%s]\n", string(b))
+//	}
+//
+//	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
+//	if err != nil {
+//		bucket.Release(nil)
+//		return
+//	}
+//
+//	// Not used on initial login..
+//	// TODO: Verify if a login, otherwise complain about no-token
+//	if s.Token != "" {
+//		req.Header.Set("authorization", s.Token)
+//	}
+//
+//	// Discord's API returns a 400 Bad Request is Content-Type is set, but the
+//	// request body is empty.
+//	if b != nil {
+//		req.Header.Set("Content-Type", contentType)
+//	}
+//
+//	// TODO: Make a configurable static variable.
+//	req.Header.Set("User-Agent", s.UserAgent)
+//
+//	if s.Debug {
+//		for k, v := range req.Header {
+//			log.Printf("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
+//		}
+//	}
+//
+//	resp, err := s.Client.Do(req)
+//	if err != nil {
+//		bucket.Release(nil)
+//		return
+//	}
+//	defer func() {
+//		err2 := resp.Body.Close()
+//		if s.Debug && err2 != nil {
+//			log.Println("error closing resp body")
+//		}
+//	}()
+//
+//	err = bucket.Release(resp.Header)
+//	if err != nil {
+//		return
+//	}
+//
+//	response, err = ioutil.ReadAll(resp.Body)
+//	if err != nil {
+//		return
+//	}
+//
+//	if s.Debug {
+//
+//		log.Printf("API RESPONSE  STATUS :: %s\n", resp.Status)
+//		for k, v := range resp.Header {
+//			log.Printf("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
+//		}
+//		log.Printf("API RESPONSE    BODY :: [%s]\n\n\n", response)
+//	}
+//
+//	switch resp.StatusCode {
+//	case http.StatusOK:
+//	case http.StatusCreated:
+//	case http.StatusNoContent:
+//	case http.StatusBadGateway:
+//		// Retry sending request if possible
+//		if sequence < s.MaxRestRetries {
+//
+//			s.log(LogInformational, "%s Failed (%s), Retrying...", urlStr, resp.Status)
+//			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1)
+//		} else {
+//			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
+//		}
+//	case 429: // TOO MANY REQUESTS - Rate limiting
+//		rl := TooManyRequests{}
+//		err = Unmarshal(response, &rl)
+//		if err != nil {
+//			s.log(LogError, "rate limit unmarshal error, %s", err)
+//			return
+//		}
+//
+//		if s.ShouldRetryOnRateLimit {
+//			s.log(LogInformational, "Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
+//			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
+//
+//			time.Sleep(rl.RetryAfter)
+//			// we can make the above smarter
+//			// this method can cause longer delays than required
+//
+//			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence)
+//		} else {
+//			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
+//		}
+//	case http.StatusUnauthorized:
+//		if strings.Index(s.Token, "Bot ") != 0 {
+//			s.log(LogInformational, ErrUnauthorized.Error())
+//			err = ErrUnauthorized
+//		}
+//		fallthrough
+//	default: // Error condition
+//		err = newRestError(req, resp, response)
+//	}
+//
+//	return
+//}
 
 type ReaderWithMockClose struct {
 	*bytes.Reader
@@ -2914,6 +2915,94 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 	log.Print("No Files")
 	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
 	return err
+}
+
+// WebhookExecuteComplex executes a webhook.
+// webhookID: The ID of a webhook.
+// token    : The auth token for the webhook
+func (s *Session) InteractionExecuteComplex(webhookID int64, token string, interaction *InteractionResponse) (m *Message, err error) {
+	data := interaction.Data
+	type := interaction.Type
+
+	uri := EndpointInteractionCallback(webhookID, token)
+
+	endpoint := uri
+
+	// TODO: Remove this when compatibility is not required.
+	var files []*File
+	files = data.Files
+
+	var response []byte
+	if len(files) > 0 {
+		logrus.Debug("Files happening")
+		body := &bytes.Buffer{}
+		bodywriter := multipart.NewWriter(body)
+
+		var payload []byte
+		payload, err = json.Marshal(*InteractionResponse{
+			Type: type,
+			Data: data,
+		})
+		if err != nil {
+			return
+		}
+
+		var p io.Writer
+
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", `form-data; name="payload_json"`)
+		h.Set("Content-Type", "application/json")
+
+		p, err = bodywriter.CreatePart(h)
+		if err != nil {
+			return
+		}
+
+		if _, err = p.Write(payload); err != nil {
+			return
+		}
+
+		for i, file := range files {
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+			contentType := file.ContentType
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			h.Set("Content-Type", contentType)
+
+			p, err = bodywriter.CreatePart(h)
+			if err != nil {
+				return
+			}
+
+			if _, err = io.Copy(p, file.Reader); err != nil {
+				return
+			}
+		}
+
+		err = bodywriter.Close()
+		if err != nil {
+			return
+		}
+
+		response, err = s.requestUpdated("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+	} else {
+		logrus.Debug("Files didn't happen")
+		response, err = s.RequestWithBucketID("POST", endpoint, *InteractionResponse{
+			Type: type,
+			Data: data,
+		}, nil, EndpointWebhookToken(0, ""))
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
+
+	// _, err = s.RequestWithBucketID("POST", uri, data, EndpointWebhookToken(0, ""))
+	// return
 }
 
 //// ChannelMessageSendComplex sends a message to the given channel.
