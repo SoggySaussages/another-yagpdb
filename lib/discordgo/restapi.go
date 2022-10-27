@@ -2921,8 +2921,8 @@ func (s *Session) InteractionRespond(interactionID int64, token string, resp *In
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook
 func (s *Session) InteractionExecuteComplex(webhookID int64, token string, interaction *InteractionResponse) (m *Message, err error) {
-	data := interaction.Data
-	type := interaction.Type
+	idata := interaction.Data
+	itype := interaction.Type
 
 	uri := EndpointInteractionCallback(webhookID, token)
 
@@ -2930,7 +2930,7 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 
 	// TODO: Remove this when compatibility is not required.
 	var files []*File
-	files = data.Files
+	files = idata.Files
 
 	var response []byte
 	if len(files) > 0 {
@@ -2940,8 +2940,8 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 
 		var payload []byte
 		payload, err = json.Marshal(*InteractionResponse{
-			Type: type,
-			Data: data,
+			Type: itype,
+			Data: idata,
 		})
 		if err != nil {
 			return
@@ -2990,8 +2990,8 @@ func (s *Session) InteractionExecuteComplex(webhookID int64, token string, inter
 	} else {
 		logrus.Debug("Files didn't happen")
 		response, err = s.RequestWithBucketID("POST", endpoint, *InteractionResponse{
-			Type: type,
-			Data: data,
+			Type: itype,
+			Data: idata,
 		}, nil, EndpointWebhookToken(0, ""))
 	}
 
