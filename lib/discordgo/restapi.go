@@ -2921,7 +2921,7 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 // WebhookExecuteComplex executes a webhook.
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook
-func (s *Session) InteractionExecuteComplex(webhookID int64, token string, interaction *InteractionResponse) (m *Message, err error) {
+func (s *Session) InteractionExecuteComplex(webhookID int64, token string, interaction *InteractionResponse) (err error) {
 	idata := interaction.Data
 	itype := interaction.Type
 
