@@ -767,10 +767,9 @@ func EditComponentMessageSend(values ...interface{}) error {
 		return err
 	}
 
-	var data *discordgo.InteractionResponseData
+	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
-	file.Name = "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
