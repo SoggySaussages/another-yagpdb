@@ -203,6 +203,7 @@ type DelayedRunCCData struct {
 var cmdEvalCommand = &commands.YAGCommand{
 	CmdCategory:  commands.CategoryTool,
 	Name:         "Evalcc",
+	Aliases:      []string{"evalfunc"},
 	Description:  "Quick function testing",
 	RequiredArgs: 1,
 	Arguments: []*dcmd.ArgDef{
@@ -237,8 +238,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 			return "This is a dev-only command!", nil
 		}
 
-		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS)
-		tmplCtx.IsExecedByEvalCC = true
+		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, "")
 
 		// preapre message specific data
 		m := data.TraditionalTriggerData.Message
@@ -262,7 +262,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 		code := data.Args[0].Str()
 
 		if channel == nil {
-			return "rut roh", nil
+			return "rut roh (go yell at veda)", nil
 		}
 
 		out, err := tmplCtx.Execute(code)
