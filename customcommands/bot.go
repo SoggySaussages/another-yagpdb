@@ -266,7 +266,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 		} else {
 			tmplCtx.Data["CmdArgs"] = []string{}
 		}
-RawArg
+
 		code := data.Args[0].Str()
 
 		if channel == nil {
