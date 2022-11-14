@@ -244,14 +244,15 @@ var cmdEvalCommand = &commands.YAGCommand{
 		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, interactionString)
 
 		// preapre message specific data
-		var args []*RawArg
+		var argsString string
 		if data.TraditionalTriggerData != nil {
 			m := data.TraditionalTriggerData.Message
 			tmplCtx.Data["Message"] = m
-			args = dcmd.SplitArgs(m.Content)
+			argsString = m.Content
 		} else {
-			args = dcmd.SplitArgs(data.Args[0].Str())
+			argsString = data.Args[0].Str()
 		}
+		args := dcmd.SplitArgs(argsString)
 		argsStr := make([]string, len(args))
 		for k, v := range args {
 			argsStr[k] = v.Str
@@ -265,7 +266,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 		} else {
 			tmplCtx.Data["CmdArgs"] = []string{}
 		}
-
+RawArg
 		code := data.Args[0].Str()
 
 		if channel == nil {
