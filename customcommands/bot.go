@@ -325,7 +325,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 		}
 
 		tmplCtx.Data["Args"] = argsStr
-		tmplCtx.Data["StrippedMsg"] = data.Args[0].Str()
+		tmplCtx.Data["StrippedMsg"] = argsString
 		tmplCtx.Data["Cmd"] = argsStr[0]
 		if len(argsStr) > 1 {
 			tmplCtx.Data["CmdArgs"] = argsStr[1:]
@@ -333,7 +333,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 			tmplCtx.Data["CmdArgs"] = []string{}
 		}
 
-		code := data.Args[0].Str()
+		code := argsString
 
 		if channel == nil {
 			return "rut roh (go yell at veda)", nil
