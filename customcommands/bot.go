@@ -62,7 +62,7 @@ var _ bot.BotInitHandler = (*Plugin)(nil)
 var _ commands.CommandProvider = (*Plugin)(nil)
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands)
+	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands, cmdEvalCommand)
 }
 //
 func (p *Plugin) BotInit() {
@@ -198,6 +198,80 @@ type DelayedRunCCData struct {
 	UserKey interface{} `json:"user_key"`
 
 	IsExecedByLeaveMessage bool `json:"is_execed_by_leave_message"`
+}
+
+var cmdEvalCommand = &commands.YAGCommand{
+	CmdCategory:  commands.CategoryTool,
+	Name:         "Evalcc",
+	Description:  "Quick function testing",
+	RequiredArgs: 1,
+	Arguments: []*dcmd.ArgDef{
+		{Name: "code", Type: dcmd.String},
+	},
+	SlashCommandEnabled: false,
+	DefaultEnabled:      true,
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		guildData := data.GuildData
+		channel := guildData.CS
+
+		// Disallow calling via exec / execAdmin
+		if data.Context().Value(commands.CtxKeyExecutedByCC) == true {
+			return "", nil
+		}
+
+		var hasCoreWriteRole bool
+		for _, r := range data.GuildData.MS.Member.Roles {
+			if common.ContainsInt64Slice((common.GetCoreServerConfCached(guildData.GS.ID)).AllowedWriteRoles, r) {
+				// we have a core-config allowed write role!
+				hasCoreWriteRole = true
+				break
+			}
+		}
+
+		adminOrPerms, err := bot.AdminOrPermMS(guildData.GS.ID, channel.ID, guildData.MS, discordgo.PermissionManageMessages)
+		if err != nil {
+			return nil, err
+		}
+
+		if !(adminOrPerms || hasCoreWriteRole) {
+			return "This is a dev-only command!", nil
+		}
+
+		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS)
+		tmplCtx.IsExecedByEvalCC = true
+
+		// preapre message specific data
+		m := data.TraditionalTriggerData.Message
+
+		args := dcmd.SplitArgs(m.Content)
+		argsStr := make([]string, len(args))
+		for k, v := range args {
+			argsStr[k] = v.Str
+		}
+
+		tmplCtx.Data["Args"] = argsStr
+		tmplCtx.Data["StrippedMsg"] = data.Args[0].Str()
+		tmplCtx.Data["Cmd"] = argsStr[0]
+		if len(argsStr) > 1 {
+			tmplCtx.Data["CmdArgs"] = argsStr[1:]
+		} else {
+			tmplCtx.Data["CmdArgs"] = []string{}
+		}
+		tmplCtx.Data["Message"] = m
+
+		code := data.Args[0].Str()
+
+		if channel == nil {
+			return "rut roh", nil
+		}
+
+		out, err := tmplCtx.Execute(code)
+		if err != nil {
+			return "An error caused the custom command to stop:\n`" + err.Error() + "`", nil
+		}
+
+		return out, nil
+	},
 }
 
 var cmdListCommands = &commands.YAGCommand{

@@ -1174,7 +1174,6 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 			msg.Content = &temp
 		case "embed":
 			if val == nil {
-				msg.Embeds = append([]*discordgo.MessageEmbed{}, (&discordgo.MessageEmbed{}).MarshalNil(true))
 				continue
 			}
 			v, _ := indirect(reflect.ValueOf(val))
