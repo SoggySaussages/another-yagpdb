@@ -209,7 +209,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 	Arguments: []*dcmd.ArgDef{
 		{Name: "code", Type: dcmd.String},
 	},
-	SlashCommandEnabled: false,
+	SlashCommandEnabled: true,
 	DefaultEnabled:      true,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		guildData := data.GuildData
@@ -238,7 +238,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 			return "This is a dev-only command!", nil
 		}
 
-		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, "")
+		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, ""))
 
 		// preapre message specific data
 		m := data.TraditionalTriggerData.Message
