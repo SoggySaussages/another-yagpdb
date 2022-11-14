@@ -239,7 +239,7 @@ var cmdEvalCommand = &commands.YAGCommand{
 		}
 		interactionString := ""
 		if data.SlashCommandTriggerData != nil {
-			interactionString = fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, "")
+			interactionString = fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "evaluated-function", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, "")
 		}
 		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, interactionString)
 
