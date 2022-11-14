@@ -237,12 +237,15 @@ var cmdEvalCommand = &commands.YAGCommand{
 		if !(adminOrPerms || hasCoreWriteRole) {
 			return "This is a dev-only command!", nil
 		}
-
-		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, ""))
+		interactionString := ""
+		if data.SlashCommandTriggerData != nil {
+			interactionString = fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, "")
+		}
+		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, interactionString)
 
 		// preapre message specific data
 		var args []*RawArg
-		if data.TraditionalTriggerData == nil {
+		if data.TraditionalTriggerData != nil {
 			m := data.TraditionalTriggerData.Message
 			tmplCtx.Data["Message"] = m
 			args = dcmd.SplitArgs(m.Content)
