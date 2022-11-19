@@ -195,13 +195,14 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			return "", errors.New("Channel not in state")
 		}
 
+		currentStackDepthI := ctx.Data["StackDepth"]
+		currentStackDepth := 0
+		if currentStackDepthI != nil {
+			currentStackDepth = currentStackDepthI.(int)
+		}
+
 		actualDelay := templates.ToInt64(delaySeconds)
 		if actualDelay <= 0 {
-			currentStackDepthI := ctx.Data["StackDepth"]
-			currentStackDepth := 0
-			if currentStackDepthI != nil {
-				currentStackDepth = currentStackDepthI.(int)
-			}
 
 			if currentStackDepth >= 2 {
 				return "", errors.New("Max nested immediate execCC calls reached (2)")
@@ -228,6 +229,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			Message: ctx.Msg,
 
 			IsExecedByLeaveMessage: ctx.IsExecedByLeaveMessage,
+			ImmediateStackDepth: currentStackDepth
 		}
 
 		// embed data using msgpack to include type information
