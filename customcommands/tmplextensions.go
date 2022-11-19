@@ -172,6 +172,8 @@ func (pa *ParsedArgs) IsSet(index int) interface{} {
 	return pa.Get(index) != nil
 }
 
+type StackDepth int
+
 // tmplRunCC either run another custom command immeditely with a max stack depth of 2
 // or schedules a custom command to be run in the future sometime with the provided data placed in .ExecData
 func tmplRunCC(ctx *templates.Context) interface{} {
