@@ -1930,12 +1930,12 @@ const (
 
 const (
     // Standard width and height of a captcha image.
-    StdWidth  = 240
-    StdHeight = 80
+    StdWidth  = 225
+    StdHeight = 75
 	// Maximum absolute skew factor of a single digit.
-	maxSkew = 1
+	maxSkew = 0.9
 	// Number of background circles.
-	circleCount = 25
+	circleCount = 20
 )
 
 type captchaReturn struct {

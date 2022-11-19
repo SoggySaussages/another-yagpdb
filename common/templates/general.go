@@ -756,7 +756,7 @@ func EditComponentMessageSend(values ...interface{}) error {
 		return nil
 	}
 
-	file := &discordgo.File{}
+	var file *discordgo.File
 
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
@@ -770,7 +770,6 @@ func EditComponentMessageSend(values ...interface{}) error {
 	data := &discordgo.InteractionResponseData{}
 	id := int64(0)
 	token := ""
-	file.Name = "attachment_" + time.Now().Format("2006-01-02_15-04-05")
 
 	for key, val := range messageSdict {
 
@@ -837,19 +836,23 @@ func EditComponentMessageSend(values ...interface{}) error {
 			//			}
 			var buf bytes.Buffer
 			buf.WriteString(stringFile)
-			file.ContentType = "image/png"
-			file.Reader = &buf
-			file.Name = fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05"))
-			
+			file = &discordgo.File{
+				ContentType: "image/png",
+				Reader: &buf,
+				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05")),
+			}
+			logrus.Debug("File doing it")
+
 		case "filename":
 			// Cut the filename to a reasonable length if it's too long
 			file.Name = common.CutStringShort(ToString(val), 64)
+			logrus.Debug("Filename doing it")
 		default:
 			return errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
 	}
-
-	if file.Reader != nil {
+	if file != nil {
+		logrus.Debug("File true")
 		// We hardcode the extension to .png because we're sending a png :)
 		// data.File.Name = filename // + ".png"
 
