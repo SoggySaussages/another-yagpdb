@@ -198,7 +198,7 @@ type DelayedRunCCData struct {
 	UserKey interface{} `json:"user_key"`
 
 	IsExecedByLeaveMessage bool `json:"is_execed_by_leave_message"`
-	ImmediateStackDepth	StackDepth `json:"immediate_stack_depth"`
+	ImmediateStackDepth	*StackDepth `json:"immediate_stack_depth"`
 }
 
 var cmdEvalCommand = &commands.YAGCommand{
