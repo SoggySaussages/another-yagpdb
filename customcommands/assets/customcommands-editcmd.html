@@ -100,6 +100,12 @@
                                                     {{if eq (call .GetCCIntervalType .CC) 0}}selected{{end}}>
                                                     Minute interval
                                                 </option>
+                                                <option value="slash_command" {{if eq .CC.TriggerType 7}} selected{{end}}>
+                                                    Slash Command</option>
+                                                <option value="context_menu" {{if eq .CC.TriggerType 8}} selected{{end}}>
+                                                    Context Menu</option>
+                                                <option value="component_callback" {{if eq .CC.TriggerType 9}} selected{{end}}>
+                                                    Component Callback</option>
                                             </select>
                                         </div>
                                     </div>
@@ -135,6 +141,15 @@
                                         </p>
                                         <p id="trigger-desc-interval_minutes">
                                             The command will run at a minute interval, for example every 10 minutes.
+                                        </p>
+                                        <p id="trigger-desc-slash_command">
+                                            The command will appear as a slash command.
+                                        </p>
+                                        <p id="trigger-desc-context_menu">
+                                            The command will be available in user, or message context menus.
+                                        </p>
+                                        <p id="trigger-desc-component_callback">
+                                            The command is triggered when a custom message component with matching callback ID is used.
                                         </p>
                                     </div>
                                 </div>
@@ -188,6 +203,28 @@
                                                 {{if eq .CC.ReactionTriggerMode 2}}checked{{end}}>
                                             <label class="form-check-label" for="reaction-mode-removed-{{.CC.LocalID}}">
                                                 Removed reactions only
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="cc-context-menu-trigger-details" class="hidden col-sm-8">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="context-menu"
+                                                id="context-menu-mode-user-{{.CC.LocalID}}" value="0"
+                                                {{if eq .CC.ContextMenuTriggerMode 0}}checked{{end}}>
+                                            <label class="form-check-label" for="context-menu-mode-user-{{.CC.LocalID}}">
+                                                User menu
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="context-menu_trigger_mode"
+                                                id="context-menu-mode-message-{{.CC.LocalID}}" value="1"
+                                                {{if eq .CC.ContextMenuTriggerMode 1}}checked{{end}}>
+                                            <label class="form-check-label" for="context-menu-mode-message-{{.CC.LocalID}}">
+                                                Message menu
                                             </label>
                                         </div>
                                     </div>
@@ -459,7 +496,11 @@
             t === "prefix" ||
             t === "contains" ||
             t === "regex" ||
-            t === "exact";
+            t === "exact" ||
+            t === "slash" ||
+            t === "exact" ||
+            t === "slash_command" ||
+            t === "component_callback";
     }
 
     function triggerTypeChanged() {
@@ -472,7 +513,8 @@
 
             $("#cc-text-trigger-details").addClass("hidden");
             $("#cc-extra-settings").addClass("hidden");
-            $("#cc-reaction-trigger-details").addClass("hidden")
+            $("#cc-reaction-trigger-details").addClass("hidden");
+            $("#cc-context-menu-trigger-details").addClass("hidden")
 
             $("#trigger-warning").attr("hidden", true);
 
@@ -489,6 +531,24 @@
 
             $("#cc-time-trigger-details").addClass("hidden");
             $("#cc-text-trigger-details").addClass("hidden");
+            $("#cc-context-menu-trigger-details").addClass("hidden")
+
+            $("#interval-cc-run-now").addClass("hidden")
+
+            $("#trigger-warning").attr("hidden", true);
+            $("#require-no-channels-warning").removeClass("hidden");
+            $("#require-no-roles-warning").removeClass("hidden");
+            $("#time-trigger-no-channel-warning").addClass("hidden");
+
+        } else if (dropdown.val() === "context-menu") {
+            // Context menu triggers
+
+            $("#cc-context-menu-trigger-details").removeClass("hidden")
+            $("#cc-extra-settings").removeClass("hidden");
+
+            $("#cc-time-trigger-details").addClass("hidden");
+            $("#cc-text-trigger-details").addClass("hidden");
+            $("#cc-reaction-trigger-details").addClass("hidden")
 
             $("#interval-cc-run-now").addClass("hidden")
 
@@ -505,6 +565,7 @@
 
             $("#cc-reaction-trigger-details").addClass("hidden")
             $("#cc-time-trigger-details").addClass("hidden");
+            $("#cc-context-menu-trigger-details").addClass("hidden")
 
             $("#interval-cc-run-now").addClass("hidden")
 
@@ -521,6 +582,7 @@
             $("#cc-extra-settings").addClass("hidden");
             $("#cc-reaction-trigger-details").addClass("hidden")
             $("#cc-time-trigger-details").addClass("hidden");
+            $("#cc-context-menu-trigger-details").addClass("hidden")
 
             $("#interval-cc-run-now").addClass("hidden")
 
