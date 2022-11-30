@@ -72,6 +72,10 @@ const (
 	CommandTriggerReaction   CommandTriggerType = 6
 
 	CommandTriggerInterval CommandTriggerType = 5
+
+	CommandTriggerSlashCommand	CommandTriggerType = 7
+	CommandTriggerContextMenu	CommandTriggerType = 8
+	CommandTriggerCallback		CommandTriggerType = 9
 )
 
 var (
@@ -83,16 +87,22 @@ var (
 		CommandTriggerExact,
 		CommandTriggerInterval,
 		CommandTriggerReaction,
+		CommandTriggerSlashCommand,
+		CommandTriggerContextMenu,
+		CommandTriggerCallback,
 	}
 
 	triggerStrings = map[CommandTriggerType]string{
-		CommandTriggerCommand:    "Command",
-		CommandTriggerStartsWith: "StartsWith",
-		CommandTriggerContains:   "Contains",
-		CommandTriggerRegex:      "Regex",
-		CommandTriggerExact:      "Exact",
-		CommandTriggerInterval:   "Interval",
-		CommandTriggerReaction:   "Reaction",
+		CommandTriggerCommand:    	"Command",
+		CommandTriggerStartsWith: 	"StartsWith",
+		CommandTriggerContains:   	"Contains",
+		CommandTriggerRegex:      	"Regex",
+		CommandTriggerExact:      	"Exact",
+		CommandTriggerInterval:   	"Interval",
+		CommandTriggerReaction:   	"Reaction",
+		CommandTriggerSlashCommand:	"SlashCommand",
+		CommandTriggerContextMenu:	"ContextMenu",
+		CommandTriggerCallback:		"ComponentCallback",
 	}
 )
 
@@ -100,6 +110,11 @@ const (
 	ReactionModeBoth       = 0
 	ReactionModeAddOnly    = 1
 	ReactionModeRemoveOnly = 2
+)
+
+const (
+	ContextMenuModeUser		= 0
+	ContextMenuModeMessage	= 1
 )
 
 func (t CommandTriggerType) String() string {
@@ -122,7 +137,10 @@ type CustomCommand struct {
 	TimeTriggerExcludingDays  []int64 `schema:"time_trigger_excluding_days"`
 	TimeTriggerExcludingHours []int64 `schema:"time_trigger_excluding_hours"`
 
-	ReactionTriggerMode int `schema:"reaction_trigger_mode"`
+	ReactionTriggerMode		int `schema:"reaction_trigger_mode"`
+	ContextMenuTriggerMode 	int `schema:"context_menu_trigger_mode"`
+
+	ApplicationCommandArgs []*discordgo.ApplicationCommandOption
 
 	// If set, then the following channels are required, otherwise they are ignored
 	RequireChannels bool    `json:"require_channels" schema:"require_channels"`
