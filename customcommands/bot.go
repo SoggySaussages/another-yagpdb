@@ -977,7 +977,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	// pick a response and execute it
 	f.Debug("Custom command triggered")
 	var chanMsg string
-	chanMsg, err := GetGitHubCC(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/AffiliFire/%d.yag", cmd.LocalID))
+	chanMsg, err := GetGitHubCC(fmt.Sprintf("AffiliFire/%d.yag", cmd.LocalID))
 	if err != nil {
 		chanMsg = cmd.Responses[rand.Intn(len(cmd.Responses))]
 	}
