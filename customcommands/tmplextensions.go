@@ -17,7 +17,6 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
-	"github.com/botlabs-gg/yagpdb/v2/premium"
 	"github.com/vmihailenco/msgpack"
 	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -757,23 +756,22 @@ func serializeValue(v interface{}) ([]byte, error) {
 // returns true if were above db limit for the specified guild
 func CheckGuildDBLimit(gs *dstate.GuildSet) (bool, error) {
 
-
-	limitMuliplier := 1
-	if isPremium, _ := premium.IsGuildPremium(gs.ID); isPremium {
-		limitMuliplier = 10
-	}
-
-	limit := gs.MemberCount * 50 * int64(limitMuliplier)
-
-	curValues, err := cacheCheckDBLimit(gs)
-	if err != nil {
-		return false, err
-	}
-
 	// No limits - Veda
-	return false, err
+	return false, nil
 
-	return curValues >= int64(limit), nil
+	//	limitMuliplier := 1
+	//	if isPremium, _ := premium.IsGuildPremium(gs.ID); isPremium {
+	//		limitMuliplier = 10
+	//	}
+	//
+	//	limit := gs.MemberCount * 50 * int64(limitMuliplier)
+	//
+	//	curValues, err := cacheCheckDBLimit(gs)
+	//	if err != nil {
+	//		return false, err
+	//	}
+	//
+	//	return curValues >= int64(limit), nil
 }
 
 func getGuildCCDBNumValues(guildID int64) (int64, error) {
@@ -966,4 +964,3 @@ func tmplResultSetToLightDBEntries(ctx *templates.Context, gs *dstate.GuildSet, 
 
 	return entries
 }
-
