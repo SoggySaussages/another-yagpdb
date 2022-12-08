@@ -198,7 +198,6 @@ type DelayedRunCCData struct {
 	UserKey interface{} `json:"user_key"`
 
 	IsExecedByLeaveMessage bool `json:"is_execed_by_leave_message"`
-	ImmediateStackDepth	int `json:"immediate_stack_depth"`
 }
 
 var cmdEvalCommand = &commands.YAGCommand{
@@ -545,9 +544,6 @@ func handleDelayedRunCC(evt *schEventsModels.ScheduledEvent, data interface{}) (
 	}
 
 	tmplCtx.IsExecedByLeaveMessage = dataCast.IsExecedByLeaveMessage
-	if dataCast.ImmediateStackDepth != nil {
-		tmplCtx.Data["StackDepth"] = dataCast.ImmediateStackDepth
-	}
 
 	// decode userdata
 	if len(dataCast.UserData) > 0 {
