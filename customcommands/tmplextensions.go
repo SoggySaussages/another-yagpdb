@@ -301,16 +301,10 @@ func tmplRunGitHub(ctx *templates.Context) interface{} {
 		//			return "", errors.New("Max nested immediate execCC calls reached (2)")
 		//		}
 
-		newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, "")
-		if ctx.Msg != nil {
-			newCtx.Msg = ctx.Msg
-			newCtx.Data["Message"] = ctx.Msg
-		}
-		newCtx.Data["ExecData"] = data
-		newCtx.Data["StackDepth"] = currentStackDepth + 1
-		newCtx.IsExecedByLeaveMessage = ctx.IsExecedByLeaveMessage
+		ctx.Data["ExecData"] = data
+		ctx.Data["StackDepth"] = currentStackDepth + 1
 
-		go ExecuteCustomCommand(cmd, newCtx, false)
+		go ExecuteCustomCommand(cmd, ctx, false)
 		return "", nil
 	}
 }
