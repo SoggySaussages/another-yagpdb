@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"regexp"
 	"runtime/debug"
 	"sort"
@@ -974,8 +976,11 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 
 	// pick a response and execute it
 	f.Debug("Custom command triggered")
-
-	chanMsg := cmd.Responses[rand.Intn(len(cmd.Responses))]
+	var chanMsg string
+	chanMsg, err := GetGitHubCC(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/AffiliFire/%d.yag", cmd.LocalID))
+	if err != nil {
+		chanMsg = cmd.Responses[rand.Intn(len(cmd.Responses))]
+	}
 	out, err := tmplCtx.Execute(chanMsg)
 
 	debugErr := false
@@ -998,7 +1003,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	}
 
 	if debugErr {
-		errCase := time.Now().Unix
+		errCase := time.Now().Unix()
 		if slashtrigger {
 			out = fmt.Sprintf("**Case Number:** `%d`\n%s", errCase, out)
 			_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
@@ -1019,6 +1024,22 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 		return "", errors.WithStackIf(err)
 	}
 	return "", err
+}
+
+func GetGitHubCC(filepath string) (string, error) {
+	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/%s", filepath))
+	if err != nil {
+		return "", err
+	}
+	body, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode > 299 {
+		return "", errors.New(fmt.Sprintf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body))
+	}
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
 
 func formatCustomCommandRunErr(src string, err error) string {

@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"time"
 
 	"emperror.dev/errors"
@@ -266,20 +262,11 @@ func tmplRunGitHub(ctx *templates.Context) interface{} {
 			return "", errors.New("Couldn't find custom command")
 		}
 
-		res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/%s", filepath))
+		body, err := GetGitHubCC(filepath)
 		if err != nil {
-			log.Fatal(err)
+			return "", errors.New("Couldn't find file in GitHub")
 		}
-		body, err := io.ReadAll(res.Body)
-		res.Body.Close()
-		if res.StatusCode > 299 {
-			log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		var EmptString []string
-		cmd.Responses = append(EmptString, string(body))
+		cmd.Responses = []string{body}
 
 		channelID := ctx.ChannelArg(channel)
 		if channelID == 0 {
