@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"io"
+	"log"
+	"net/http"
 	"time"
 
 	"emperror.dev/errors"
@@ -28,6 +31,7 @@ func init() {
 		ctx.ContextFuncs["parseArgs"] = tmplExpectArgs(ctx)
 		ctx.ContextFuncs["carg"] = tmplCArg
 		ctx.ContextFuncs["execCC"] = tmplRunCC(ctx)
+		ctx.ContextFuncs["execGitHub"] = tmplRunGitHub(ctx)
 		ctx.ContextFuncs["scheduleUniqueCC"] = tmplScheduleUniqueCC(ctx)
 		ctx.ContextFuncs["cancelScheduledUniqueCC"] = tmplCancelUniqueCC(ctx)
 
@@ -247,6 +251,65 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			return "", errors.WrapIf(err, "failed scheduling cc run")
 		}
 
+		return "", nil
+	}
+}
+
+func tmplRunGitHub(ctx *templates.Context) interface{} {
+	return func(url string, channel interface{}, ccID int, data interface{}) (string, error) {
+		//		if ctx.IncreaseCheckCallCounterPremium("runcc", 1, 10) {
+		//			return "", templates.ErrTooManyCalls
+		//		}
+		cmd, err := models.FindCustomCommandG(context.Background(), ctx.GS.ID, int64(ccID))
+		if err != nil {
+			return "", errors.New("Couldn't find custom command")
+		}
+
+		res, err := http.Get(url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		body, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if res.StatusCode > 299 {
+			log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		var EmptString []string
+		cmd.Responses = append(EmptString, string(body))
+
+		channelID := ctx.ChannelArg(channel)
+		if channelID == 0 {
+			return "", errors.New("Unknown channel")
+		}
+
+		cs := ctx.GS.GetChannelOrThread(channelID)
+		if cs == nil {
+			return "", errors.New("Channel not in state")
+		}
+
+		currentStackDepthI := ctx.Data["StackDepth"]
+		currentStackDepth := 0
+		if currentStackDepthI != nil {
+			currentStackDepth = currentStackDepthI.(int)
+		}
+
+		//		if currentStackDepth >= 2 {
+		//			return "", errors.New("Max nested immediate execCC calls reached (2)")
+		//		}
+
+		newCtx := templates.NewContext(ctx.GS, cs, ctx.MS, "")
+		if ctx.Msg != nil {
+			newCtx.Msg = ctx.Msg
+			newCtx.Data["Message"] = ctx.Msg
+		}
+		newCtx.Data["ExecData"] = data
+		newCtx.Data["StackDepth"] = currentStackDepth + 1
+		newCtx.IsExecedByLeaveMessage = ctx.IsExecedByLeaveMessage
+
+		go ExecuteCustomCommand(cmd, newCtx, false)
 		return "", nil
 	}
 }

@@ -64,6 +64,7 @@ var _ commands.CommandProvider = (*Plugin)(nil)
 func (p *Plugin) AddCommands() {
 	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands, cmdEvalCommand)
 }
+
 //
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleMessageCreate), eventsystem.EventMessageCreate)
@@ -81,7 +82,7 @@ func (p *Plugin) BotInit() {
 
 	pubsub.AddHandler("dm_interaction", func(evt *pubsub.Event) {
 		dataCast := evt.Data.(*discordgo.InteractionCreate)
-//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
+		//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
 		if dataCast.Type == discordgo.InteractionApplicationCommand {
 			logger.Error("Aborting")
 			return
@@ -95,11 +96,11 @@ func (p *Plugin) BotInit() {
 
 func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 	logger.Debug("HandleInteractionCreate triggered")
-//	ic := evt.InteractionCreate()
-//	if ic.GuildID != 0 {
-//		logrus.Error("Aborting: 99")
-//		return
-//	}
+	//	ic := evt.InteractionCreate()
+	//	if ic.GuildID != 0 {
+	//		logrus.Error("Aborting: 99")
+	//		return
+	//	}
 	if ic.Member == nil {
 		logger.Error("Aborting")
 		return
@@ -619,13 +620,13 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 		return true
 	}
 
-//	if !bot.IsNormalUserMessage(evt.Message) {
-//		return true
-//	}
+	//	if !bot.IsNormalUserMessage(evt.Message) {
+	//		return true
+	//	}
 
-//	if evt.Message.Author.Bot {
-//		return true
-//	}
+	//	if evt.Message.Author.Bot {
+	//		return true
+	//	}
 
 	if hasPerms, _ := bot.BotHasPermissionGS(gs, cState.ID, discordgo.PermissionSendMessages); !hasPerms {
 		return true
@@ -953,21 +954,21 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	})
 
 	// do not allow concurrent executions of the same custom command, to prevent most common kinds of abuse
-//	lockKey := CCExecKey{
-//		GuildID: cmd.GuildID,
-//		CCID:    cmd.LocalID,
-//	}
-//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
-//	if lockHandle == -1 {
-//		f.Warn("Exceeded max lock attempts for cc")
-//		if cmd.ShowErrors {
-//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
-//		}
-//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
-//		return nil
-//	}
-//
-//	defer CCExecLock.Unlock(lockKey, lockHandle)
+	//	lockKey := CCExecKey{
+	//		GuildID: cmd.GuildID,
+	//		CCID:    cmd.LocalID,
+	//	}
+	//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
+	//	if lockHandle == -1 {
+	//		f.Warn("Exceeded max lock attempts for cc")
+	//		if cmd.ShowErrors {
+	//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
+	//		}
+	//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
+	//		return nil
+	//	}
+	//
+	//	defer CCExecLock.Unlock(lockKey, lockHandle)
 
 	go analytics.RecordActiveUnit(cmd.GuildID, &Plugin{}, "executed_cc")
 
@@ -1165,7 +1166,7 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 	if cmd.ShowErrors {
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
-//	Logging in debug channel now -Veda
+		//	Logging in debug channel now -Veda
 		common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
 
