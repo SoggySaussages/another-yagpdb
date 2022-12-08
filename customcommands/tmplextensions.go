@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -256,7 +257,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 }
 
 func tmplRunGitHub(ctx *templates.Context) interface{} {
-	return func(url string, channel interface{}, ccID int, data interface{}) (string, error) {
+	return func(filepath string, channel interface{}, ccID int, data interface{}) (string, error) {
 		//		if ctx.IncreaseCheckCallCounterPremium("runcc", 1, 10) {
 		//			return "", templates.ErrTooManyCalls
 		//		}
@@ -265,7 +266,7 @@ func tmplRunGitHub(ctx *templates.Context) interface{} {
 			return "", errors.New("Couldn't find custom command")
 		}
 
-		res, err := http.Get(url)
+		res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/%s", filepath))
 		if err != nil {
 			log.Fatal(err)
 		}
