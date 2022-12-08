@@ -228,7 +228,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 			Message: ctx.Msg,
 
 			IsExecedByLeaveMessage: ctx.IsExecedByLeaveMessage,
-			ImmediateStackDepth: currentStackDepth,
+			ImmediateStackDepth: currentStackDepth
 		}
 
 		// embed data using msgpack to include type information
