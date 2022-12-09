@@ -15,6 +15,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/common"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
+	"github.com/sirupsen/logrus"
 )
 
 // dictionary creates a map[string]interface{} from the given parameters by
@@ -205,114 +206,321 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 //	Reverse bool        `json:"reverse"`
 //}
 
-func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
-
-	messageSdict, _ := StringKeyDictionary(values...)
-
-	buttons := "false"
-	button1label := "false"
-	button1id := "false"
-//	button1style := 1
-	button2label := "false"
-	button2id := "false"
-//	button2style := 1
-	button3label := "false"
-	button3id := "false"
-//	button3style := 1
-	button4label := "false"
-	button4id := "false"
-//	button4style := 1
-	button5label := "false"
-	button5id := "false"
-//	button5style := 1
-
-	comp := []discordgo.MessageComponent{}
-
-	// Default filename
-	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
-	for key, val := range messageSdict {
-
-		switch key {
-		case "buttons":
-			buttons = ToString(val)
-		case "button1label":
-			button1label = ToString(val)
-		case "button1id":
-			button1id = ToString(val)
-			comp = append(comp,
-				discordgo.Button{
-					Label:    button1label,
-					CustomID: button1id,
-					Style:    discordgo.PrimaryButton,
-				})
-//		case "button1style":
-//			button1style = tmplToInt(val)
-		case "button2label":
-			button2label = ToString(val)
-		case "button2id":
-			button2id = ToString(val)
-			comp = append(comp,
-				discordgo.Button{
-					Label:    button2label,
-					CustomID: button2id,
-					Style:    discordgo.PrimaryButton,
-				})
-//		case "button2style":
-//			button2style = tmplToInt(val)
-		case "button3label":
-			button3label = ToString(val)
-		case "button3id":
-			button3id = ToString(val)
-			comp = append(comp, 
-				discordgo.Button{
-					Label:    button3label,
-					CustomID: button3id,
-					Style:    discordgo.PrimaryButton,
-				})
-//		case "button3style":
-//			button3style = tmplToInt(val)
-		case "button4label":
-			button4label = ToString(val)
-		case "button4id":
-			button4id = ToString(val)
-			comp = append(comp,
-				discordgo.Button{
-					Label:    button4label,
-					CustomID: button4id,
-					Style:    discordgo.PrimaryButton,
-				})
-//		case "button4style":
-//			button4style = tmplToInt(val)
-		case "button5label":
-			button5label = ToString(val)
-		case "button5id":
-			button5id = ToString(val)
-			comp = append(comp,
-				discordgo.Button{
-					Label:    button5label,
-					CustomID: button5id,
-					Style:    discordgo.PrimaryButton,
-				})
-//		case "button5style":
-//			button5style = tmplToInt(val)
-		default:
-//			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+func Component(values ...interface{}) discordgo.MessageComponent {
+	logger.Debug("Parsing a component")
+	var m map[string]interface{}
+	switch t := values[0].(type) {
+	case SDict:
+		logger.Debug("Case 1 for component")
+		m = t
+	case *SDict:
+		logger.Debug("Case 2 for component")
+		m = *t
+	case map[string]interface{}:
+		logger.Debug("Case 3 for component")
+		m = t
+	case discordgo.MessageComponent:
+		logger.Debug("Case 4 for component")
+		return t
+	default:
+		logger.Debug("Case default for component")
+		dict, err := StringKeyDictionary(values...)
+		if err != nil {
 			return nil
 		}
-
+		m = dict
+	}
+	encoded, err := json.Marshal(m)
+	if err != nil {
+		return nil
 	}
 
-//	return msg, nil
-//msg.Embeds = append(msg.Embeds, embed)
-if buttons != "false" {
-	return []discordgo.MessageComponent{
-		discordgo.ActionsRow{
-			Components: comp,
-		},
+	var embed discordgo.MessageComponent
+	err = json.Unmarshal(encoded, &embed)
+	if err != nil {
+		return nil
 	}
+
+	return embed
 }
-return nil
+
+func ParseButton(values ...interface{}) (discordgo.Button, error) {
+	messageSdict, _ := StringKeyDictionary(values...)
+	b := discordgo.Button{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "label":
+					b.Label = ToString(val)
+				case "id":
+					b.CustomID = ToString(val)
+				case "url":
+					b.URL = ToString(val)
+				case "disabled":
+					b.Disabled = true
+				case "style":
+					if tmplToInt(val) == 1 {
+						b.Style = discordgo.PrimaryButton
+					} else if tmplToInt(val) == 2 {
+						b.Style = discordgo.SecondaryButton
+					} else if tmplToInt(val) == 3 {
+						b.Style = discordgo.SuccessButton
+					} else if tmplToInt(val) == 4 {
+						b.Style = discordgo.DangerButton
+					} else if tmplToInt(val) == 5 {
+						b.Style = discordgo.LinkButton
+					} 
+				case "emoji":
+					b.Emoji, _ = ParseComponentEmoji(val)
+				default:
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return b, nil
 }
+
+func ParseSelectMenu(values ...interface{}) (discordgo.SelectMenu, error) {
+	logger.Debug("Parsing a select menu")
+	messageSdict, _ := StringKeyDictionary(values...)
+	b := discordgo.SelectMenu{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "placeholder":
+					logger.Debugf("Parsing a select menu placeholder %s", val)
+					b.Placeholder = ToString(val)
+				case "id":
+					logger.Debugf("Parsing a select menu id %s", val)
+					b.CustomID = ToString(val)
+//				case "minValues":
+//					b.MinValues = tmplToInt(val)
+				case "maxValues":
+					logger.Debugf("Parsing a select menu maxValues %s", val)
+					b.MaxValues = tmplToInt(val)
+				case "disabled":
+					logger.Debugf("Parsing a select menu disabled %s", val)
+					b.Disabled = true
+				case "options":
+					v, _ := indirect(reflect.ValueOf(val))
+					const maxOptions = 10 // Discord limitation
+					for i := 0; i < v.Len() && i < maxOptions; i++ {
+						logger.Debugf("Parsing a select menu options")
+					//	embed, err := CreateEmbed(v.Index(i).Interface())
+					//	if err != nil {
+					//		return nil, err
+					//	}
+					sm, err := ParseSelectMenuOption(v.Index(i).Interface())
+					if err != nil {
+						return b, err
+					}
+					b.Options = append(b.Options, sm)
+					}
+				default:
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return b, nil
+}
+
+func ParseSelectMenuOption(values ...interface{}) (discordgo.SelectMenuOption, error) {
+	logger.Debug("Parsing a select menu option")
+	messageSdict, _ := StringKeyDictionary(values...)
+	b := discordgo.SelectMenuOption{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "label":
+					logger.Debugf("Parsing a select menu option label %s", val)
+					b.Label = ToString(val)
+				case "value":
+					logger.Debugf("Parsing a select menu option value %s", val)
+					b.Value = ToString(val)
+				case "description":
+					logger.Debugf("Parsing a select menu option description %s", val)
+					b.Description = ToString(val)
+				case "default":
+					logger.Debugf("Parsing a select menu option default %s", val)
+					b.Default = true
+				case "emoji":
+					logger.Debugf("Parsing a select menu option emoji")
+					b.Emoji, _ = ParseComponentEmoji(val)
+				default:
+					return b, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return b, nil
+}
+
+func ParseComponentEmoji(values ...interface{}) (discordgo.ComponentEmoji, error) {
+	messageSdict, _ := StringKeyDictionary(values...)
+	e := discordgo.ComponentEmoji{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "name":
+					e.Name = ToString(val)
+				case "id":
+					e.ID = ToInt64(val)
+				case "animated":
+					e.Animated = true
+				default:
+					return e, errors.New(`invalid key "` + key + `" passed to message component builder`)
+				}
+		
+			}
+			return e, nil
+}
+
+func ParseTextField(values ...interface{}) (discordgo.TextInput, error) {
+	messageSdict, _ := StringKeyDictionary(values...)
+	t := discordgo.TextInput{}
+
+	for key, val := range messageSdict {
+		
+				switch key {
+				case "style":
+					if tmplToInt(val) == 1 {
+						t.Style = discordgo.TextInputShort
+					} else if tmplToInt(val) == 2 {
+						t.Style = discordgo.TextInputParagraph
+					}
+				case "label":
+					t.Label = ToString(val)
+				case "customID":
+					t.CustomID = ToString(val)
+				case "value":
+					t.Value = ToString(val)
+				case "placeholder":
+					t.Placeholder = ToString(val)
+				case "required":
+					t.Required = true
+				case "minLength":
+					t.MinLength = tmplToInt(val)
+				case "maxLength":
+					t.MaxLength = tmplToInt(val)
+				default:
+					return t, errors.New(`invalid key "` + key + `" passed to text field builder`)
+				}
+		
+			}
+			return t, nil
+}
+
+//func ParseComponents(values ...interface{}) []discordgo.MessageComponent {
+//
+//	messageSdict, _ := StringKeyDictionary(values...)
+//
+////	buttons := "false"
+//	button1label := "false"
+//	button1id := "false"
+////	button1style := 1
+//	button2label := "false"
+//	button2id := "false"
+////	button2style := 1
+//	button3label := "false"
+//	button3id := "false"
+////	button3style := 1
+//	button4label := "false"
+//	button4id := "false"
+////	button4style := 1
+//	button5label := "false"
+//	button5id := "false"
+////	button5style := 1
+//
+//	comp := []discordgo.MessageComponent{}
+//
+//	// Default filename
+//	// filename := "attachment_" + time.Now().Format("2006-01-02_15-04-05")
+//	for key, val := range messageSdict {
+//
+//		switch key {
+////		case "buttons":
+////			buttons = ToString(val)
+//		case "button1label":
+//			button1label = ToString(val)
+//		case "button1id":
+//			button1id = ToString(val)
+//			comp = append(comp,
+//				discordgo.Button{
+//					Label:    button1label,
+//					CustomID: button1id,
+//					Style:    discordgo.PrimaryButton,
+//				})
+////		case "button1style":
+////			button1style = tmplToInt(val)
+//		case "button2label":
+//			button2label = ToString(val)
+//		case "button2id":
+//			button2id = ToString(val)
+//			comp = append(comp,
+//				discordgo.Button{
+//					Label:    button2label,
+//					CustomID: button2id,
+//					Style:    discordgo.PrimaryButton,
+//				})
+////		case "button2style":
+////			button2style = tmplToInt(val)
+//		case "button3label":
+//			button3label = ToString(val)
+//		case "button3id":
+//			button3id = ToString(val)
+//			comp = append(comp, 
+//				discordgo.Button{
+//					Label:    button3label,
+//					CustomID: button3id,
+//					Style:    discordgo.PrimaryButton,
+//				})
+////		case "button3style":
+////			button3style = tmplToInt(val)
+//		case "button4label":
+//			button4label = ToString(val)
+//		case "button4id":
+//			button4id = ToString(val)
+//			comp = append(comp,
+//				discordgo.Button{
+//					Label:    button4label,
+//					CustomID: button4id,
+//					Style:    discordgo.PrimaryButton,
+//				})
+////		case "button4style":
+////			button4style = tmplToInt(val)
+//		case "button5label":
+//			button5label = ToString(val)
+//		case "button5id":
+//			button5id = ToString(val)
+//			comp = append(comp,
+//				discordgo.Button{
+//					Label:    button5label,
+//					CustomID: button5id,
+//					Style:    discordgo.PrimaryButton,
+//				})
+////		case "button5style":
+////			button5style = tmplToInt(val)
+//		default:
+////			return nil, errors.New(`invalid key "` + key + `" passed to message component builder`)
+//			return nil
+//		}
+//
+//	}
+//
+////	return msg, nil
+////msg.Embeds = append(msg.Embeds, embed)
+////if buttons != "false" {
+//	return []discordgo.MessageComponent{
+//		discordgo.ActionsRow{
+//			Components: comp,
+//		},
+//	}
+////}
+//return nil
+////}
 
 func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	if len(values) < 1 {
@@ -360,9 +568,9 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			}
 		case "file":
 			stringFile := ToString(val)
-			if len(stringFile) > 100000 {
-				return nil, errors.New("file length for send message builder exceeded size limit")
-			}
+//			if len(stringFile) > 100000 {
+//				return nil, errors.New("file length for send message builder exceeded size limit")
+//			}
 			var buf bytes.Buffer
 			buf.WriteString(stringFile)
 
@@ -374,7 +582,31 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			// Cut the filename to a reasonable length if it's too long
 			filename = common.CutStringShort(ToString(val), 64)
 		case "components":
-			msg.Components = ParseComponents(val)
+			msg.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							//button, err := ParseButton(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return msg, err
+							//}
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return msg, err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
+						}
+					}
+						
+					msg.Components = append(msg.Components, discordgo.ActionsRow{actionRow})
+				}
+			}
 		case "reply":
 			msgID := ToInt64(val)
 			if msgID <= 0 {
@@ -390,16 +622,19 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	}
 	if msg.File != nil {
 		// We hardcode the extension to .txt to prevent possible abuse via .bat or other possible harmful/easily corruptable file formats
-		msg.File.Name = filename + ".txt"
+		msg.File.Name = filename // + ".txt"
 	}
 
 	return msg, nil
 }
 
 func CreateInteractionResponseSend(values ...interface{}) error {
+	logrus.Debug("Interaction Response doing it")
 	if len(values) < 1 {
 		return nil
 	}
+
+	var file *discordgo.File
 
 //	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
 //		return nil
@@ -441,9 +676,273 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 				data.Embeds = []*discordgo.MessageEmbed{embed}
 			}
 		case "components":
-			data.Components = ParseComponents(val)
+			data.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
+						}
+					}
+						
+					data.Components = append(data.Components, discordgo.ActionsRow{actionRow})
+				}
+			}
 		case "flags":
 			data.Flags = uint64(tmplToInt(val))
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		case "file":
+			stringFile := ToString(val)
+			//			if len(stringFile) > 100000 {
+			//				return nil, errors.New("file length for send message builder exceeded size limit")
+			//			}
+			var buf bytes.Buffer
+			buf.WriteString(stringFile)
+			file = &discordgo.File{
+				ContentType: "image/png",
+				Reader: &buf,
+				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05")),
+			}
+			logrus.Debug("File doing it")
+
+		case "filename":
+			// Cut the filename to a reasonable length if it's too long
+			file.Name = common.CutStringShort(ToString(val), 64)
+			logrus.Debug("Filename doing it")
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	if file != nil {
+		logrus.Debug("File true")
+		// We hardcode the extension to .png because we're sending a png :)
+		// data.File.Name = filename // + ".png"
+
+		data.Attachments = append(data.Attachments, file)
+	}
+
+	logrus.Debug("Sending")
+	common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: data,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EditComponentMessageSend(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+	var file *discordgo.File
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	data := &discordgo.InteractionResponseData{}
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "content":
+			data.Content = ToString(val)
+		case "embed":
+			if val == nil {
+				continue
+			}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxEmbeds = 10 // Discord limitation
+				for i := 0; i < v.Len() && i < maxEmbeds; i++ {
+					embed, err := CreateEmbed(v.Index(i).Interface())
+					if err != nil {
+						return err
+					}
+					data.Embeds = append(data.Embeds, embed)
+				}
+			} else {
+				embed, err := CreateEmbed(val)
+				if err != nil {
+					return err
+				}
+				data.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			data.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
+						}
+					}
+						
+					data.Components = append(data.Components, discordgo.ActionsRow{actionRow})
+				}
+			}
+		case "flags":
+			data.Flags = uint64(tmplToInt(val))
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		case "file":
+			stringFile := ToString(val)
+			//			if len(stringFile) > 100000 {
+			//				return nil, errors.New("file length for send message builder exceeded size limit")
+			//			}
+			var buf bytes.Buffer
+			buf.WriteString(stringFile)
+			file = &discordgo.File{
+				ContentType: "image/png",
+				Reader: &buf,
+				Name: fmt.Sprint("attachment_", time.Now().Format("2006-01-02_15-04-05")),
+			}
+			logrus.Debug("File doing it")
+
+		case "filename":
+			// Cut the filename to a reasonable length if it's too long
+			file.Name = common.CutStringShort(ToString(val), 64)
+			logrus.Debug("Filename doing it")
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+	}
+	if file != nil {
+		logrus.Debug("File true")
+		// We hardcode the extension to .png because we're sending a png :)
+		// data.File.Name = filename // + ".png"
+
+		data.Attachments = append(data.Attachments, file)
+	}
+
+	common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseUpdateMessage,
+		Data: data,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EditInteractionResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	data := &discordgo.WebhookParams{}
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "content":
+			data.Content = ToString(val)
+		case "embed":
+			if val == nil {
+				continue
+			}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxEmbeds = 10 // Discord limitation
+				for i := 0; i < v.Len() && i < maxEmbeds; i++ {
+					embed, err := CreateEmbed(v.Index(i).Interface())
+					if err != nil {
+						return err
+					}
+					data.Embeds = append(data.Embeds, embed)
+				}
+			} else {
+				embed, err := CreateEmbed(val)
+				if err != nil {
+					return err
+				}
+				data.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			data.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+							//button, err := ParseButton(v2.Index(i).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							//marshal, err := json.Marshal(v2.Index(i2).Interface())
+							//if err != nil {
+							//	return err
+							//}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
+						}
+					}
+						
+					data.Components = append(data.Components, discordgo.ActionsRow{actionRow})
+				}
+			}
+		case "flags":
+			data.Flags = int64(tmplToInt(val))
 		case "id":
 			id = int64(tmplToInt(val))
 		case "token":
@@ -453,10 +952,12 @@ func CreateInteractionResponseSend(values ...interface{}) error {
 		}
 
 	}
-	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: data,
-	})
+	common.BotSession.EditOriginalInteractionResponse(id, token, data)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -478,17 +979,126 @@ func CreateModal(values ...interface{}) error {
 	id := int64(0)
 	token := ""
 	title := ""
-	label := ""
+	//label := ""
+	components := []discordgo.MessageComponent{}
+	othercomponents := []discordgo.MessageComponent{}
 
 	for key, val := range messageSdict {
 
 		switch key {
-		case "customID":
-			customID = ToString(val)
 		case "title":
 			title = ToString(val)
-		case "label":
-			label = ToString(val)
+		case "customID":
+			customID = ToString(val)
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		case "fields":
+			v2, _ := indirect(reflect.ValueOf(val))
+			if v2.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i2 := 0; i2 < v2.Len() && i2 < maxRows; i2++ {
+					v, _ := indirect(reflect.ValueOf(v2.Index(i2).Interface()))
+					if v.Kind() == reflect.Slice {
+						const maxFields = 1 // Discord limitation
+						for i := 0; i < v.Len() && i < maxFields; i++ {
+							field, err := ParseTextField(v.Index(i).Interface())
+							if err != nil {
+								return err
+							}
+							othercomponents = []discordgo.MessageComponent{}
+							othercomponents = append(othercomponents, field)
+							components = append(components, discordgo.ActionsRow{
+								Components: othercomponents,
+							})
+						}
+					}
+				}
+			}
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseModal,
+		Data: &discordgo.InteractionResponseData{
+			CustomID: customID,
+			Title:    title,
+			Components: components,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeferResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	id := int64(0)
+	token := ""
+	flags := uint64(0)
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		case "ephemeral":
+			flags = uint64(tmplToInt(val))
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: flags,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeferEditResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
 		case "id":
 			id = int64(tmplToInt(val))
 		case "token":
@@ -498,26 +1108,48 @@ func CreateModal(values ...interface{}) error {
 		}
 
 	}
-	common.BotSession.CreateInteractionResponse(id, token, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseModal,
-		Data: &discordgo.InteractionResponseData{
-			CustomID: customID,
-			Title:    title,
-			Components: []discordgo.MessageComponent{
-				discordgo.ActionsRow{
-					Components: []discordgo.MessageComponent{
-						discordgo.TextInput{
-							CustomID:  customID,
-							Label:     label,
-							Style:     discordgo.TextInputShort,
-							Required:  true,
-							MaxLength: 200,
-						},
-					},
-				},
-			},
-		},
+	err = common.BotSession.InteractionExecuteComplex(id, token, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredMessageUpdate,
 	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func tmplDeleteInteractionResponse(values ...interface{}) error {
+	if len(values) < 1 {
+		return nil
+	}
+
+//	if m, ok := values[0].(*discordgo.MessageSend); len(values) == 1 && ok {
+//		return nil
+//	}
+
+	messageSdict, err := StringKeyDictionary(values...)
+	if err != nil {
+		return err
+	}
+
+	id := int64(0)
+	token := ""
+
+	for key, val := range messageSdict {
+
+		switch key {
+		case "id":
+			id = int64(tmplToInt(val))
+		case "token":
+			token = ToString(val)
+		default:
+			return errors.New(`invalid key "` + key + `" passed to send message builder`)
+		}
+
+	}
+	err = common.BotSession.DeleteInteractionResponse(id, token)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -560,6 +1192,32 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 					return nil, err
 				}
 				msg.Embeds = []*discordgo.MessageEmbed{embed}
+			}
+		case "components":
+			msg.Components = []discordgo.MessageComponent{}
+			v, _ := indirect(reflect.ValueOf(val))
+			if v.Kind() == reflect.Slice {
+				const maxRows = 5 // Discord limitation
+				for i := 0; i < v.Len() && i < maxRows; i++ {
+					actionRow := []discordgo.MessageComponent{}
+					v2, _ := indirect(reflect.ValueOf(v.Index(i).Interface()))
+					if v2.Kind() == reflect.Slice {
+						const maxButtons = 5 // Discord limitation
+						for i2 := 0; i2 < v2.Len() && i2 < maxButtons; i2++ {
+						//	button, err := ParseButton(v2.Index(i2).Interface())
+						//	if err != nil {
+						//		return msg, err
+						//	}
+						//	marshal, err := json.Marshal(v2.Index(i2).Interface())
+						//	if err != nil {
+						//		return msg, err
+						//	}
+							actionRow = append(actionRow, Component(v2.Index(i2).Interface()))
+						}
+					}
+						
+					msg.Components = append(msg.Components, discordgo.ActionsRow{actionRow})
+				}
 			}
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to message edit builder`)
@@ -1053,7 +1711,7 @@ func tmplRoundEven(args ...interface{}) float64 {
 
 var ErrStringTooLong = errors.NewPlain("String is too long (max 1MB)")
 
-const MaxStringLength = 1000000
+const MaxStringLength = 10000000
 
 func joinStrings(sep string, args ...interface{}) (string, error) {
 
@@ -1365,6 +2023,16 @@ func tmplJSONToSDict(v interface{}) (SDict, error) {
 	}
 
 	return toSDict, nil
+}
+
+func tmplJSONToSlice(v interface{}) (Slice, error) {
+	var toSlice Slice
+	err := json.Unmarshal([]byte(ToString(v)), &toSlice)
+	if err != nil {
+		return nil, err
+	}
+
+	return toSlice, nil
 }
 
 func tmplFormatTime(t time.Time, args ...string) string {

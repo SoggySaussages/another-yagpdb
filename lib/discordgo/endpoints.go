@@ -201,6 +201,8 @@ func CreateEndpoints(base string) {
 	EndpointGateway = EndpointAPI + "gateway"
 	EndpointGatewayBot = EndpointGateway + "/bot"
 	EndpointWebhooks = EndpointAPI + "webhooks/"
+//	EndpointStickers       = EndpointAPI + "stickers/"
+//	EndpointStageInstances = EndpointAPI + "stage-instances"
 
 	EndpointCDN = "https://cdn.discordapp.com/"
 	EndpointCDNAttachments = EndpointCDN + "attachments/"
@@ -244,6 +246,9 @@ func CreateEndpoints(base string) {
 	EndpointUserNotes = func(uID int64) string { return EndpointUsers + "@me/notes/" + StrID(uID) }
 
 	EndpointGuild = func(gID int64) string { return EndpointGuilds + StrID(gID) }
+//	EndpointGuildAutoModeration      = func(gID string) string { return EndpointGuild(gID) + "/auto-moderation" }
+//	EndpointGuildAutoModerationRules = func(gID string) string { return EndpointGuildAutoModeration(gID) + "/rules" }
+//	EndpointGuildAutoModerationRule  = func(gID, rID string) string { return EndpointGuildAutoModerationRules(gID) + "/" + rID }
 	EndpointGuildChannels = func(gID int64) string { return EndpointGuilds + StrID(gID) + "/channels" }
 	EndpointGuildMembers = func(gID int64) string { return EndpointGuilds + StrID(gID) + "/members" }
 	EndpointGuildMember = func(gID int64, uID int64) string { return EndpointGuilds + StrID(gID) + "/members/" + StrID(uID) }

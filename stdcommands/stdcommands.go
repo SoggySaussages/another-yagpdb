@@ -22,8 +22,8 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestexec"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/devtestlistener"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/dogfact"
-	"github.com/botlabs-gg/yagpdb/v2/stdcommands/forex"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/findserver"
+	"github.com/botlabs-gg/yagpdb/v2/stdcommands/forex"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/globalrl"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/guildunavailable"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/howlongtobeat"
@@ -34,7 +34,8 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/listflags"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/listroles"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/memstats"
-	"github.com/botlabs-gg/yagpdb/v2/stdcommands/owldictionary"
+
+	//	"github.com/botlabs-gg/yagpdb/v2/stdcommands/owldictionary"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/ping"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/poll"
 	"github.com/botlabs-gg/yagpdb/v2/stdcommands/setstatus"
@@ -133,12 +134,12 @@ func (p *Plugin) AddCommands() {
 
 	statedbg.Commands()
 
-	if !owldictionary.ShouldRegister() {
-		common.GetPluginLogger(p).Warn("Owlbot API token not provided, skipping adding dictionary command...")
-		return
-	}
-
-	commands.AddRootCommands(p, owldictionary.Command)
+	//	if !owldictionary.ShouldRegister() {
+	//		common.GetPluginLogger(p).Warn("Owlbot API token not provided, skipping adding dictionary command...")
+	//		return
+	//	}
+	//
+	//	commands.AddRootCommands(p, owldictionary.Command)
 }
 
 func (p *Plugin) BotInit() {

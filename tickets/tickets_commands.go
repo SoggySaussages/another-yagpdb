@@ -9,16 +9,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+//	"strings"
 	"sync"
 	"time"
 
 	"github.com/botlabs-gg/yagpdb/v2/analytics"
+	"github.com/botlabs-gg/yagpdb/v2/bot"
 	"github.com/botlabs-gg/yagpdb/v2/commands"
 	"github.com/botlabs-gg/yagpdb/v2/common"
+	"github.com/botlabs-gg/yagpdb/v2/common/templates"
+//	"github.com/botlabs-gg/yagpdb/v2/customcommands/models"
+	"github.com/botlabs-gg/yagpdb/v2/customcommands"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dcmd"
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 	"github.com/botlabs-gg/yagpdb/v2/tickets/models"
+	"github.com/sirupsen/logrus"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 )
@@ -208,7 +214,7 @@ func (p *Plugin) AddCommands() {
 			}()
 
 			// send a heads up that this can take a while
-			common.BotSession.ChannelMessageSend(parsed.ChannelID, "Thank you for opening this ticket. Please standby while we close the ticket.")
+			common.BotSession.ChannelMessageSend(parsed.ChannelID, "Thank you for opening a ticket. Please standby while we wrap it up.")
 
 			currentTicket.Ticket.ClosedAt.Time = time.Now()
 			currentTicket.Ticket.ClosedAt.Valid = true
@@ -393,7 +399,7 @@ func TicketCommandsRolesRunFuncfunc(gs *dstate.GuildSet) ([]int64, error) {
 func RequireActiveTicketMW(inner dcmd.RunFunc) dcmd.RunFunc {
 	return func(data *dcmd.Data) (interface{}, error) {
 		if data.Context().Value(CtxKeyCurrentTicket) == nil {
-			return "This command can only be ran in a active ticket", nil
+			return "This command can only be run in a active ticket", nil
 		}
 
 		return inner(data)
@@ -483,10 +489,20 @@ func createLogs(gs *dstate.GuildSet, conf *models.TicketConfig, ticket *models.T
 	}
 
 	if conf.TicketsUseTXTTranscripts && gs.GetChannel(transcriptChannel(conf, adminOnly)) != nil {
-		formattedTranscript := createTXTTranscript(ticket, msgs)
+		formattedTranscript, htmlTranscript := createTXTTranscript(ticket, msgs)
+
+		cmd, err := customcommands.ExternalGetCCModel(gs.ID)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+		cs := gs.GetChannel(transcriptChannel(conf, adminOnly))
+		ms, _ := bot.GetMember(gs.ID, ticket.AuthorID)
+		tmplCtx := templates.NewContext(gs, cs, ms, htmlTranscript)
+		customcommands.ExecuteCustomCommand(cmd, tmplCtx, true)
 
 		channel := transcriptChannel(conf, adminOnly)
-		_, err := common.BotSession.ChannelFileSendWithMessage(channel, fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), formattedTranscript)
+		_, _ = common.BotSession.ChannelFileSendWithMessage(channel, fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), fmt.Sprintf("transcript-%d-%s.txt", ticket.LocalID, ticket.Title), formattedTranscript)
 		if err != nil {
 			return err
 		}
@@ -556,10 +572,11 @@ func archiveAttachments(conf *models.TicketConfig, ticket *models.Ticket, groups
 	}
 }
 
-const TicketTXTDateFormat = "2006 Jan 02 15:04:05"
+const TicketTXTDateFormat = "3:04 PM"
 
-func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) *bytes.Buffer {
+func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) (*bytes.Buffer, string) {
 	var buf bytes.Buffer
+	var htmlbuf bytes.Buffer
 
 	buf.WriteString(fmt.Sprintf("Transcript of ticket #%d - %s, opened by %s at %s, closed at %s.\n\n",
 		ticket.LocalID, ticket.Title, ticket.AuthorUsernameDiscrim, ticket.CreatedAt.UTC().Format(TicketTXTDateFormat), ticket.ClosedAt.Time.UTC().Format(TicketTXTDateFormat)))
@@ -572,12 +589,21 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) *byte
 		ts, _ := m.Timestamp.Parse()
 		buf.WriteString(fmt.Sprintf("[%s] %s#%s (%d): ", ts.UTC().Format(TicketTXTDateFormat), m.Author.Username, m.Author.Discriminator, m.Author.ID))
 		if m.Content != "" {
+			htmlbuf.WriteString(fmt.Sprintf("<p>%s</p>", m.Content))
 			buf.WriteString(m.Content)
 			if len(m.Embeds) > 0 {
 				buf.WriteString(", ")
 			}
 		}
-
+		htmlbuf.WriteString(fmt.Sprintf(`<table>
+		<tbody>
+		<tr>
+			<td><img src="https://cdn.discordapp.com/avatars/%d/%s.png" alt="User Icon" width="32" height="32" /></td>
+		  <td><h4>%s#%d</h4></td>
+		  <td>%s</td>
+		</tr>
+		</tbody>
+		</table>`, m.Author.ID, m.Author.Avatar, m.Author.Username, m.Author.Discriminator, ts.UTC().Format(TicketTXTDateFormat)))
 		// serialize embeds
 		for _, v := range m.Embeds {
 			marshalled, err := json.Marshal(v)
@@ -586,12 +612,14 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) *byte
 			}
 
 			buf.Write(marshalled)
+			htmlbuf.WriteString(fmt.Sprintf("<p>%s</p>", marshalled))
 		}
 
 		buf.WriteRune('\n')
+		htmlbuf.WriteString("<br>")
 	}
 
-	return &buf
+	return &buf, htmlbuf.String()
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {

@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // All error constants
@@ -44,6 +45,59 @@ var (
 	ErrUnauthorized            = errors.New("HTTP request was unauthorized. This could be because the provided token was not a bot token. Please add \"Bot \" to the start of your token. https://discordapp.com/developers/docs/reference#authentication-example-bot-token-authorization-header")
 	ErrTokenInvalid            = errors.New("Invalid token provided, it has been marked as invalid")
 )
+
+var (
+	// Marshal defines function used to encode JSON payloads
+	Marshal func(v interface{}) ([]byte, error) = json.Marshal
+	// Unmarshal defines function used to decode JSON payloads
+	Unmarshal func(src []byte, v interface{}) error = json.Unmarshal
+)
+
+//// RESTError stores error information about a request with a bad response code.
+//// Message is not always present, there are cases where api calls can fail
+//// without returning a json message.
+//type RESTError struct {
+//	Request      *http.Request
+//	Response     *http.Response
+//	ResponseBody []byte
+//
+//	Message *APIErrorMessage // Message may be nil.
+//}
+//
+//// newRestError returns a new REST API error.
+//func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTError {
+//	restErr := &RESTError{
+//		Request:      req,
+//		Response:     resp,
+//		ResponseBody: body,
+//	}
+//
+//	// Attempt to decode the error and assume no message was provided if it fails
+//	var msg *APIErrorMessage
+//	err := Unmarshal(body, &msg)
+//	if err == nil {
+//		restErr.Message = msg
+//	}
+//
+//	return restErr
+//}
+//
+//// Error returns a Rest API Error with its status code and body.
+//func (r RESTError) Error() string {
+//	return "HTTP " + r.Response.Status + ", " + string(r.ResponseBody)
+//}
+
+// RateLimitError is returned when a request exceeds a rate limit
+// and ShouldRetryOnRateLimit is false. The request may be manually
+// retried after waiting the duration specified by RetryAfter.
+type RateLimitError struct {
+	*RateLimit
+}
+
+// Error returns a rate limit error with rate limited endpoint and retry time.
+func (e RateLimitError) Error() string {
+	return "Rate limit exceeded on " + e.URL + ", retry after " + strconv.FormatFloat(e.RetryAfter, 'E', -1, 64)
+}
 
 // Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 func (s *Session) Request(method, urlStr string, data interface{}, headers map[string]string) (response []byte, err error) {
@@ -73,6 +127,128 @@ func (s *Session) request(method, urlStr, contentType string, b []byte, headers 
 
 	return s.RequestWithBucket(method, urlStr, contentType, b, headers, s.Ratelimiter.GetBucket(bucketID))
 }
+
+//// request makes a (GET/POST/...) Requests to Discord REST API.
+//// Sequence is the sequence number, if it fails with a 502 it will
+//// retry with sequence+1 until it either succeeds or sequence >= session.MaxRestRetries
+//func (s *Session) requestUpdated(method, urlStr, contentType string, b []byte, bucketID string, sequence int) (response []byte, err error) {
+//	if bucketID == "" {
+//		bucketID = strings.SplitN(urlStr, "?", 2)[0]
+//	}
+//	bucket, _ := s.Ratelimiter.LockBucket(bucketID)
+//	return s.RequestWithLockedBucket(method, urlStr, contentType, b, bucket, sequence)
+//}
+//
+//// RequestWithLockedBucket makes a request using a bucket that's already been locked
+//func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int) (response []byte, err error) {
+//	if s.Debug {
+//		log.Printf("API REQUEST %8s :: %s\n", method, urlStr)
+//		log.Printf("API REQUEST  PAYLOAD :: [%s]\n", string(b))
+//	}
+//
+//	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
+//	if err != nil {
+//		bucket.Release(nil)
+//		return
+//	}
+//
+//	// Not used on initial login..
+//	// TODO: Verify if a login, otherwise complain about no-token
+//	if s.Token != "" {
+//		req.Header.Set("authorization", s.Token)
+//	}
+//
+//	// Discord's API returns a 400 Bad Request is Content-Type is set, but the
+//	// request body is empty.
+//	if b != nil {
+//		req.Header.Set("Content-Type", contentType)
+//	}
+//
+//	// TODO: Make a configurable static variable.
+//	req.Header.Set("User-Agent", s.UserAgent)
+//
+//	if s.Debug {
+//		for k, v := range req.Header {
+//			log.Printf("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
+//		}
+//	}
+//
+//	resp, err := s.Client.Do(req)
+//	if err != nil {
+//		bucket.Release(nil)
+//		return
+//	}
+//	defer func() {
+//		err2 := resp.Body.Close()
+//		if s.Debug && err2 != nil {
+//			log.Println("error closing resp body")
+//		}
+//	}()
+//
+//	err = bucket.Release(resp.Header)
+//	if err != nil {
+//		return
+//	}
+//
+//	response, err = ioutil.ReadAll(resp.Body)
+//	if err != nil {
+//		return
+//	}
+//
+//	if s.Debug {
+//
+//		log.Printf("API RESPONSE  STATUS :: %s\n", resp.Status)
+//		for k, v := range resp.Header {
+//			log.Printf("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
+//		}
+//		log.Printf("API RESPONSE    BODY :: [%s]\n\n\n", response)
+//	}
+//
+//	switch resp.StatusCode {
+//	case http.StatusOK:
+//	case http.StatusCreated:
+//	case http.StatusNoContent:
+//	case http.StatusBadGateway:
+//		// Retry sending request if possible
+//		if sequence < s.MaxRestRetries {
+//
+//			s.log(LogInformational, "%s Failed (%s), Retrying...", urlStr, resp.Status)
+//			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1)
+//		} else {
+//			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
+//		}
+//	case 429: // TOO MANY REQUESTS - Rate limiting
+//		rl := TooManyRequests{}
+//		err = Unmarshal(response, &rl)
+//		if err != nil {
+//			s.log(LogError, "rate limit unmarshal error, %s", err)
+//			return
+//		}
+//
+//		if s.ShouldRetryOnRateLimit {
+//			s.log(LogInformational, "Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
+//			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
+//
+//			time.Sleep(rl.RetryAfter)
+//			// we can make the above smarter
+//			// this method can cause longer delays than required
+//
+//			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence)
+//		} else {
+//			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
+//		}
+//	case http.StatusUnauthorized:
+//		if strings.Index(s.Token, "Bot ") != 0 {
+//			s.log(LogInformational, ErrUnauthorized.Error())
+//			err = ErrUnauthorized
+//		}
+//		fallthrough
+//	default: // Error condition
+//		err = newRestError(req, resp, response)
+//	}
+//
+//	return
+//}
 
 type ReaderWithMockClose struct {
 	*bytes.Reader
@@ -2721,6 +2897,205 @@ func (s *Session) CreateInteractionResponse(interactionID int64, token string, d
 	return
 }
 
+//// InteractionRespond creates the response to an interaction.
+//// interaction : Interaction instance.
+//// resp        : Response message data.
+//func (s *Session) InteractionRespond(interactionID int64, token string, resp *InteractionResponse) error {
+//	endpoint := EndpointInteractionCallback(interactionID, token)
+//
+//	if resp.Data != nil && len(resp.Data.Files) > 0 {
+//		contentType, body, err := MultipartBodyWithJSONNew(resp, resp.Data.Files)
+//		if err != nil {
+//			return err
+//		}
+//		log.Print("Files")
+//		_, err = s.request("POST", endpoint, contentType, body, endpoint, 0)
+//		return err
+//	}
+//
+//	log.Print("No Files")
+//	_, err := s.RequestWithBucketID("POST", endpoint, *resp, nil, endpoint)
+//	return err
+//}
+
+// WebhookExecuteComplex executes a webhook.
+// webhookID: The ID of a webhook.
+// token    : The auth token for the webhook
+func (s *Session) InteractionExecuteComplex(webhookID int64, token string, interaction *InteractionResponse) (err error) {
+	idata := interaction.Data
+	itype := interaction.Type
+
+	uri := EndpointInteractionCallback(webhookID, token)
+
+	endpoint := uri
+
+	// TODO: Remove this when compatibility is not required.
+	var files []*File
+	files = idata.Attachments
+
+	if len(files) > 0 {
+		logrus.Debug("Files happening")
+		body := &bytes.Buffer{}
+		bodywriter := multipart.NewWriter(body)
+
+		var payload []byte
+		payload, err = json.Marshal(InteractionResponse{
+			Type: itype,
+			Data: idata,
+		})
+		if err != nil {
+			return
+		}
+
+		var p io.Writer
+
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", `form-data; name="payload_json"`)
+		h.Set("Content-Type", "application/json")
+
+		p, err = bodywriter.CreatePart(h)
+		if err != nil {
+			return
+		}
+
+		if _, err = p.Write(payload); err != nil {
+			return
+		}
+
+		for i, file := range files {
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+			contentType := file.ContentType
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			h.Set("Content-Type", contentType)
+
+			p, err = bodywriter.CreatePart(h)
+			if err != nil {
+				return
+			}
+
+			if _, err = io.Copy(p, file.Reader); err != nil {
+				return
+			}
+		}
+
+		err = bodywriter.Close()
+		if err != nil {
+			return
+		}
+
+		_, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+	} else {
+		logrus.Debug("Files didn't happen")
+		_, err = s.RequestWithBucketID("POST", endpoint, InteractionResponse{
+			Type: itype,
+			Data: idata,
+		}, nil, EndpointWebhookToken(0, ""))
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
+
+	// _, err = s.RequestWithBucketID("POST", uri, data, EndpointWebhookToken(0, ""))
+	// return
+}
+
+//// ChannelMessageSendComplex sends a message to the given channel.
+//// channelID : The ID of a Channel.
+//// data      : The message struct to send.
+//func (s *Session) CreateInteractionResponseComplex(interactionID int64, token string, data *InteractionResponse) (st string, err error) {
+//	debug := bytes.NewBufferString("").Bytes()
+//	logrus.Debug("Complex Interaction Response started")
+//	data.Data.Embeds = ValidateComplexMessageEmbeds(data.Data.Embeds)
+//	st = ""
+//
+//	// TODO: Remove this when compatibility is not required.
+//	files := data.Data.Files
+//	if data.Data.File != nil {
+//		if files == nil {
+//			files = []*File{data.Data.File}
+//		} else {
+//			err = fmt.Errorf("cannot specify both File and Files")
+//			return
+//		}
+//	}
+//
+////	var response []byte
+//	if len(files) > 0 {
+//		logrus.Debug("Writing payload")
+//		body := &bytes.Buffer{}
+//		bodywriter := multipart.NewWriter(body)
+//
+//		var payload []byte
+//		payload, err = json.Marshal(data)
+//		if err != nil {
+//			return
+//		}
+//
+//		var p io.Writer
+//
+//		h := make(textproto.MIMEHeader)
+//		h.Set("Content-Disposition", `form-data; name="payload_json"`)
+//		h.Set("Content-Type", "application/json")
+//
+//		p, err = bodywriter.CreatePart(h)
+//		if err != nil {
+//			return
+//		}
+//
+//		if _, err = p.Write(payload); err != nil {
+//			return
+//		}
+//
+//		logrus.Debug("Ranging files")
+//		for i, file := range files {
+//			logrus.Debugf("File %d", i)
+//			h := make(textproto.MIMEHeader)
+//			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file%d"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+//			contentType := file.ContentType
+//			if contentType == "" {
+//				contentType = "application/octet-stream"
+//			}
+//			h.Set("Content-Type", contentType)
+//
+//			p, err = bodywriter.CreatePart(h)
+//			if err != nil {
+//				return
+//			}
+//
+//			if _, err = io.Copy(p, file.Reader); err != nil {
+//				return
+//			}
+//		}
+//
+//		err = bodywriter.Close()
+//		if err != nil {
+//			return
+//		}
+//
+//		logrus.Debug("POSTing")
+//		logrus.Debug(bodywriter.FormDataContentType())
+//		logrus.Debug(body.String())
+//
+////		response, err = s.request("POST", endpoint, bodywriter.FormDataContentType(), body.Bytes(), nil, endpoint)
+//		debug, err = s.request("POST", EndpointInteractionCallback(interactionID, token), bodywriter.FormDataContentType(), body.Bytes(), nil, EndpointInteractionCallback(0, ""))
+//	} else {
+//		debug, err = s.RequestWithBucketID("POST", EndpointInteractionCallback(interactionID, token), data, nil, EndpointInteractionCallback(0, ""))
+//	}
+//	dbgBuf := bytes.NewBuffer(debug)
+//	logrus.Debug(dbgBuf.String())
+//	if err != nil {
+//		return
+//	}
+//	
+//	return
+//}
+
 // GetOriginalInteractionResponse Returns the initial Interaction response. Functions the same as Get Webhook Message.
 // GET /webhooks/{application.id}/{interaction.token}/messages/@original
 func (s *Session) GetOriginalInteractionResponse(applicationID int64, token string) (st *Message, err error) {
@@ -2786,7 +3161,241 @@ func (s *Session) DeleteFollowupMessage(applicationID int64, token string, messa
 	return
 }
 
-
-
-// Stuff that is not discordgo :p - Veda
-
+//// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+//// Functions specific to stage instances
+//// StageInstanceCreate creates and returns a new Stage instance associated to a Stage channel.
+//// data : Parameters needed to create a stage instance.
+//
+//// data : The data of the Stage instance to create
+//func (s *Session) StageInstanceCreate(data *StageInstanceParams) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("POST", EndpointStageInstances, data, nil, EndpointStageInstances)
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstance will retrieve a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//func (s *Session) StageInstance(channelID string) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("GET", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstanceEdit will edit a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//// data : The data to edit the Stage instance
+//func (s *Session) StageInstanceEdit(channelID string, data *StageInstanceParams) (si *StageInstance, err error) {
+//	body, err := s.RequestWithBucketID("PATCH", EndpointStageInstance(channelID), data, nil, EndpointStageInstance(channelID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &si)
+//	return
+//
+//}
+//// StageInstanceDelete will delete a Stage instance by ID of the Stage channel.
+//// channelID : The ID of the Stage channel
+//
+//func (s *Session) StageInstanceDelete(channelID string) (err error) {
+//	_, err = s.RequestWithBucketID("DELETE", EndpointStageInstance(channelID), nil, nil, EndpointStageInstance(channelID))
+//	return
+//}
+//// ------------------------------------------------------------------------------------------------
+//// Functions specific to guilds scheduled events
+//
+//// ------------------------------------------------------------------------------------------------
+//// GuildScheduledEvents returns an array of GuildScheduledEvent for a guild
+//// guildID        : The ID of a Guild
+//
+//// userCount      : Whether to include the user count in the response
+//func (s *Session) GuildScheduledEvents(guildID string, userCount bool) (st []*GuildScheduledEvent, err error) {
+//	uri := EndpointGuildScheduledEvents(guildID)
+//	if userCount {
+//		uri += "?with_user_count=true"
+//	}
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvents(guildID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEvent returns a specific GuildScheduledEvent in a guild
+//// guildID        : The ID of a Guild
+//
+//// eventID        : The ID of the event
+//// userCount      : Whether to include the user count in the response
+//func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool) (st *GuildScheduledEvent, err error) {
+//	uri := EndpointGuildScheduledEvent(guildID, eventID)
+//	if userCount {
+//		uri += "?with_user_count=true"
+//	}
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEventCreate creates a GuildScheduledEvent for a guild and returns it
+//// guildID   : The ID of a Guild
+//
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventCreate(guildID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+//	body, err := s.RequestWithBucketID("POST", EndpointGuildScheduledEvents(guildID), event, nil, EndpointGuildScheduledEvents(guildID))
+//	if err != nil {
+//		return
+//	}
+//	err = unmarshal(body, &st)
+//	return
+//
+//}
+//// GuildScheduledEventEdit updates a specific event for a guild and returns it.
+//// guildID   : The ID of a Guild
+//
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *GuildScheduledEventParams) (st *GuildScheduledEvent, err error) {
+//	body, err := s.RequestWithBucketID("PATCH", EndpointGuildScheduledEvent(guildID, eventID), event, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// GuildScheduledEventDelete deletes a specific GuildScheduledEvent in a guild
+//// guildID   : The ID of a Guild
+//// eventID   : The ID of the event
+//func (s *Session) GuildScheduledEventDelete(guildID, eventID string) (err error) {
+//	_, err = s.RequestWithBucketID("DELETE", EndpointGuildScheduledEvent(guildID, eventID), nil, nil, EndpointGuildScheduledEvent(guildID, eventID))
+//	return
+//}
+//
+//// GuildScheduledEventUsers returns an array of GuildScheduledEventUser for a particular event in a guild
+//// guildID    : The ID of a Guild
+//// eventID    : The ID of the event
+//// limit      : The maximum number of users to return (Max 100)
+//// withMember : Whether to include the member object in the response
+//// beforeID   : If is not empty all returned users entries will be before the given ID
+//// afterID    : If is not empty all returned users entries will be after the given ID
+//func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string) (st []*GuildScheduledEventUser, err error) {
+//	uri := EndpointGuildScheduledEventUsers(guildID, eventID)
+//
+//	queryParams := url.Values{}
+//	if withMember {
+//		queryParams.Set("with_member", "true")
+//	}
+//	if limit > 0 {
+//		queryParams.Set("limit", strconv.Itoa(limit))
+//	}
+//	if beforeID != "" {
+//		queryParams.Set("before", beforeID)
+//	}
+//	if afterID != "" {
+//		queryParams.Set("after", afterID)
+//	}
+//
+//	if len(queryParams) > 0 {
+//		uri += "?" + queryParams.Encode()
+//	}
+//
+//	body, err := s.RequestWithBucketID("GET", uri, nil, nil, EndpointGuildScheduledEventUsers(guildID, eventID))
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// ----------------------------------------------------------------------
+//// Functions specific to auto moderation
+//// ----------------------------------------------------------------------
+//
+//// AutoModerationRules returns a list of auto moderation rules.
+//// guildID : ID of the guild
+//func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRules(guildID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRule returns an auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("GET", endpoint, nil, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
+//// guildID : ID of the guild
+//// rule    : Rule data
+//func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRules(guildID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("POST", endpoint, rule, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//// rule    : New rule data
+//func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//
+//	var body []byte
+//	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, nil, endpoint)
+//	if err != nil {
+//		return
+//	}
+//
+//	err = unmarshal(body, &st)
+//	return
+//}
+//
+//// AutoModerationRuleDelete deletes an auto moderation rule.
+//// guildID : ID of the guild
+//// ruleID  : ID of the auto moderation rule
+//func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
+//	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+//	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, nil, endpoint)
+//	return
+//}

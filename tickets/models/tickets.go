@@ -20,6 +20,110 @@ import (
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	"github.com/volatiletech/sqlboiler/queries/qmhelper"
 	"github.com/volatiletech/sqlboiler/strmangle"
+	"github.com/volatiletech/sqlboiler/types"
+)
+
+// CustomCommands retrieves all the records using an executor.
+func CustomCommands(mods ...qm.QueryMod) customCommandQuery {
+	mods = append(mods, qm.From("\"custom_commands\""))
+	return customCommandQuery{NewQuery(mods...)}
+}
+
+// CustomCommandGroup is an object representing the database table.
+type CustomCommandGroup struct {
+	ID                int64            `boil:"id" json:"id" toml:"id" yaml:"id"`
+	GuildID           int64            `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
+	Name              string           `boil:"name" json:"name" toml:"name" yaml:"name"`
+	IgnoreRoles       types.Int64Array `boil:"ignore_roles" json:"ignore_roles,omitempty" toml:"ignore_roles" yaml:"ignore_roles,omitempty"`
+	IgnoreChannels    types.Int64Array `boil:"ignore_channels" json:"ignore_channels,omitempty" toml:"ignore_channels" yaml:"ignore_channels,omitempty"`
+	WhitelistRoles    types.Int64Array `boil:"whitelist_roles" json:"whitelist_roles,omitempty" toml:"whitelist_roles" yaml:"whitelist_roles,omitempty"`
+	WhitelistChannels types.Int64Array `boil:"whitelist_channels" json:"whitelist_channels,omitempty" toml:"whitelist_channels" yaml:"whitelist_channels,omitempty"`
+
+	R *customCommandGroupR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L customCommandGroupL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+}
+
+// CustomCommand is an object representing the database table.
+type CustomCommand struct {
+	LocalID                   int64             `boil:"local_id" json:"local_id" toml:"local_id" yaml:"local_id"`
+	GuildID                   int64             `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
+	GroupID                   null.Int64        `boil:"group_id" json:"group_id,omitempty" toml:"group_id" yaml:"group_id,omitempty"`
+	TriggerType               int               `boil:"trigger_type" json:"trigger_type" toml:"trigger_type" yaml:"trigger_type"`
+	TextTrigger               string            `boil:"text_trigger" json:"text_trigger" toml:"text_trigger" yaml:"text_trigger"`
+	TextTriggerCaseSensitive  bool              `boil:"text_trigger_case_sensitive" json:"text_trigger_case_sensitive" toml:"text_trigger_case_sensitive" yaml:"text_trigger_case_sensitive"`
+	TimeTriggerInterval       int               `boil:"time_trigger_interval" json:"time_trigger_interval" toml:"time_trigger_interval" yaml:"time_trigger_interval"`
+	TimeTriggerExcludingDays  types.Int64Array  `boil:"time_trigger_excluding_days" json:"time_trigger_excluding_days" toml:"time_trigger_excluding_days" yaml:"time_trigger_excluding_days"`
+	TimeTriggerExcludingHours types.Int64Array  `boil:"time_trigger_excluding_hours" json:"time_trigger_excluding_hours" toml:"time_trigger_excluding_hours" yaml:"time_trigger_excluding_hours"`
+	LastRun                   null.Time         `boil:"last_run" json:"last_run,omitempty" toml:"last_run" yaml:"last_run,omitempty"`
+	NextRun                   null.Time         `boil:"next_run" json:"next_run,omitempty" toml:"next_run" yaml:"next_run,omitempty"`
+	Responses                 types.StringArray `boil:"responses" json:"responses" toml:"responses" yaml:"responses"`
+	Channels                  types.Int64Array  `boil:"channels" json:"channels,omitempty" toml:"channels" yaml:"channels,omitempty"`
+	ChannelsWhitelistMode     bool              `boil:"channels_whitelist_mode" json:"channels_whitelist_mode" toml:"channels_whitelist_mode" yaml:"channels_whitelist_mode"`
+	Roles                     types.Int64Array  `boil:"roles" json:"roles,omitempty" toml:"roles" yaml:"roles,omitempty"`
+	RolesWhitelistMode        bool              `boil:"roles_whitelist_mode" json:"roles_whitelist_mode" toml:"roles_whitelist_mode" yaml:"roles_whitelist_mode"`
+	ContextChannel            int64             `boil:"context_channel" json:"context_channel" toml:"context_channel" yaml:"context_channel"`
+	ReactionTriggerMode       int16             `boil:"reaction_trigger_mode" json:"reaction_trigger_mode" toml:"reaction_trigger_mode" yaml:"reaction_trigger_mode"`
+	Disabled                  bool              `boil:"disabled" json:"disabled" toml:"disabled" yaml:"disabled"`
+	LastError                 string            `boil:"last_error" json:"last_error" toml:"last_error" yaml:"last_error"`
+	LastErrorTime             null.Time         `boil:"last_error_time" json:"last_error_time,omitempty" toml:"last_error_time" yaml:"last_error_time,omitempty"`
+	RunCount                  int               `boil:"run_count" json:"run_count" toml:"run_count" yaml:"run_count"`
+	ShowErrors                bool              `boil:"show_errors" json:"show_errors" toml:"show_errors" yaml:"show_errors"`
+
+	R *customCommandR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L customCommandL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+}
+
+// customCommandR is where relationships are stored.
+type customCommandR struct {
+	Group *CustomCommandGroup
+}
+
+// NewStruct creates a new relationship struct
+func (*customCommandR) NewStruct() *customCommandR {
+	return &customCommandR{}
+}
+
+// customCommandL is where Load methods for each relationship are stored.
+type customCommandL struct{}
+
+type (
+	// CustomCommandSlice is an alias for a slice of pointers to CustomCommand.
+	// This should generally be used opposed to []CustomCommand.
+	CustomCommandSlice []*CustomCommand
+
+	customCommandQuery struct {
+		*queries.Query
+	}
+)
+
+// customCommandGroupR is where relationships are stored.
+type customCommandGroupR struct {
+	GroupCustomCommands CustomCommandSlice
+}
+
+// NewStruct creates a new relationship struct
+func (*customCommandGroupR) NewStruct() *customCommandGroupR {
+	return &customCommandGroupR{}
+}
+
+// customCommandGroupL is where Load methods for each relationship are stored.
+type customCommandGroupL struct{}
+
+var (
+	customCommandGroupAllColumns            = []string{"id", "guild_id", "name", "ignore_roles", "ignore_channels", "whitelist_roles", "whitelist_channels"}
+	customCommandGroupColumnsWithoutDefault = []string{"guild_id", "name", "ignore_roles", "ignore_channels", "whitelist_roles", "whitelist_channels"}
+	customCommandGroupColumnsWithDefault    = []string{"id"}
+	customCommandGroupPrimaryKeyColumns     = []string{"id"}
+)
+
+type (
+	// CustomCommandGroupSlice is an alias for a slice of pointers to CustomCommandGroup.
+	// This should generally be used opposed to []CustomCommandGroup.
+	CustomCommandGroupSlice []*CustomCommandGroup
+
+	customCommandGroupQuery struct {
+		*queries.Query
+	}
 )
 
 // Ticket is an object representing the database table.
@@ -187,6 +291,11 @@ func (q ticketQuery) OneG(ctx context.Context) (*Ticket, error) {
 	return q.One(ctx, boil.GetContextDB())
 }
 
+// OneG returns a single customCommand record from the query using the global executor.
+func (q customCommandQuery) OneG(ctx context.Context) (*CustomCommand, error) {
+	return q.One(ctx, boil.GetContextDB())
+}
+
 // One returns a single ticket record from the query.
 func (q ticketQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Ticket, error) {
 	o := &Ticket{}
@@ -199,6 +308,23 @@ func (q ticketQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Ticke
 			return nil, sql.ErrNoRows
 		}
 		return nil, errors.WrapIf(err, "models: failed to execute a one query for tickets")
+	}
+
+	return o, nil
+}
+
+// One returns a single customCommand record from the query.
+func (q customCommandQuery) One(ctx context.Context, exec boil.ContextExecutor) (*CustomCommand, error) {
+	o := &CustomCommand{}
+
+	queries.SetLimit(q.Query, 1)
+
+	err := q.Bind(ctx, exec, o)
+	if err != nil {
+		if errors.Cause(err) == sql.ErrNoRows {
+			return nil, sql.ErrNoRows
+		}
+		return nil, errors.Wrap(err, "models: failed to execute a one query for custom_commands")
 	}
 
 	return o, nil

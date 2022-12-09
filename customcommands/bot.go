@@ -3,8 +3,11 @@ package customcommands
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"regexp"
 	"runtime/debug"
 	"sort"
@@ -61,8 +64,9 @@ var _ bot.BotInitHandler = (*Plugin)(nil)
 var _ commands.CommandProvider = (*Plugin)(nil)
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands)
+	commands.AddRootCommands(p, cmdListCommands, cmdFixCommands, cmdEvalCommand)
 }
+
 //
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleMessageCreate), eventsystem.EventMessageCreate)
@@ -80,7 +84,7 @@ func (p *Plugin) BotInit() {
 
 	pubsub.AddHandler("dm_interaction", func(evt *pubsub.Event) {
 		dataCast := evt.Data.(*discordgo.InteractionCreate)
-//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
+		//		if dataCast.Type != discordgo.InteractionMessageComponent && dataCast.Type != discordgo.InteractionModalSubmit {
 		if dataCast.Type == discordgo.InteractionApplicationCommand {
 			logger.Error("Aborting")
 			return
@@ -94,11 +98,11 @@ func (p *Plugin) BotInit() {
 
 func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 	logger.Debug("HandleInteractionCreate triggered")
-//	ic := evt.InteractionCreate()
-//	if ic.GuildID != 0 {
-//		logrus.Error("Aborting: 99")
-//		return
-//	}
+	//	ic := evt.InteractionCreate()
+	//	if ic.GuildID != 0 {
+	//		logrus.Error("Aborting: 99")
+	//		return
+	//	}
 	if ic.Member == nil {
 		logger.Error("Aborting")
 		return
@@ -119,7 +123,12 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID))
+		marshal, err := json.Marshal(ic.MessageComponentData().Values)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 1, ic.MessageComponentData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
@@ -136,7 +145,12 @@ func HandleInteractionCreate(ic *discordgo.InteractionCreate) {
 		gs := bot.State.GetGuild(ic.GuildID)
 		cs := gs.GetChannel(ic.ChannelID)
 		ms := dstate.MemberStateFromMember(ic.Member)
-		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d,%s,%s,%d,%d,%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, ic.ModalSubmitData().Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value))
+		marshal, err := json.Marshal(ic.ModalSubmitData().Components)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
+		tmplCtx := templates.NewContext(gs, cs, ms, fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 2, ic.ModalSubmitData().CustomID, ic.Token, ic.ID, ic.Message.ID, marshal))
 		logger.Debug("Executing custom command, standby...")
 		ExecuteCustomCommand(cmd, tmplCtx, true)
 		logger.Debug("Custom command executed")
@@ -187,6 +201,154 @@ type DelayedRunCCData struct {
 	UserKey interface{} `json:"user_key"`
 
 	IsExecedByLeaveMessage bool `json:"is_execed_by_leave_message"`
+}
+
+var cmdEvalCommand = &commands.YAGCommand{
+	CmdCategory:  commands.CategoryTool,
+	Name:         "Evalcc",
+	Aliases:      []string{"evalfunc"},
+	Description:  "Quick function testing",
+	RequiredArgs: 1,
+	Arguments: []*dcmd.ArgDef{
+		{Name: "code", Type: dcmd.String},
+	},
+	SlashCommandEnabled: true,
+	DefaultEnabled:      true,
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		guildData := data.GuildData
+		channel := guildData.CS
+
+		// Disallow calling via exec / execAdmin
+		if data.Context().Value(commands.CtxKeyExecutedByCC) == true {
+			return "", nil
+		}
+
+		var hasCoreWriteRole bool
+		for _, r := range data.GuildData.MS.Member.Roles {
+			if common.ContainsInt64Slice((common.GetCoreServerConfCached(guildData.GS.ID)).AllowedWriteRoles, r) {
+				// we have a core-config allowed write role!
+				hasCoreWriteRole = true
+				break
+			}
+		}
+
+		adminOrPerms, err := bot.AdminOrPermMS(guildData.GS.ID, channel.ID, guildData.MS, discordgo.PermissionManageMessages)
+		if err != nil {
+			return nil, err
+		}
+
+		if !(adminOrPerms || hasCoreWriteRole) {
+			return "This is a dev-only command!", nil
+		}
+		interactionString := ""
+		if data.SlashCommandTriggerData != nil {
+			interactionString = fmt.Sprintf("%d;;%s;;%s;;%d;;%d;;%s", 0, "evaluated-function", data.SlashCommandTriggerData.Interaction.Token, data.SlashCommandTriggerData.Interaction.ID, 0, "")
+		}
+		tmplCtx := templates.NewContext(guildData.GS, channel, guildData.MS, interactionString)
+
+		// preapre message specific data
+		var argsString string
+		if data.TraditionalTriggerData != nil {
+			m := data.TraditionalTriggerData.Message
+			tmplCtx.Data["Message"] = m
+			argsString = m.Content
+		} else {
+			middlewareCC := fmt.Sprint(`{{$stringData := split .InteractionData ";;"}}
+			{{$data := cslice}}
+			{{range $stringData}}
+			{{$data = $data.Append .}}
+			{{end}}
+			{{$log := sdict "RawData" $data}}
+			{{$log.Set "User" .User.String}}
+			{{$log.Set "UserID" .User.ID}}
+			{{sendMessage 1031102617532776519 (cembed "author" (sdict "name" .User.String "icon_url" (.User.AvatarURL "512")) "description" (print "`, "```", `json\n" (json $log) "`, "```", `") )}}
+			{{$splitCID := split (index $data 1) "-"}}
+			{{$prefix := index $splitCID 0}}
+			{{$strippedID := index $splitCID 1}}
+			{{$suffix := ""}}
+			{{if gt (len $splitCID) 2}}
+			    {{$suffix = index $splitCID 2}}
+			{{end}}
+			{{if gt (len $splitCID) 3}}
+			    {{range (slice $splitCID 3)}}
+			        {{$suffix = print $suffix "-" .}}
+			    {{end}}
+			{{end}}
+			{{$execute := 9999}}
+			{{$typeDict := dict
+			1 "button"
+			2 "modal"
+			3 "selectMenu"
+			}}
+			{{$modalBool := false}}
+			{{$maybeModalData := false}}
+			{{$modalVals := sdict}}
+			{{if eq (index $data 0|toInt) 2}}
+			    {{range (jsonToSlice (index $data 5))}}
+			        {{$modalVals.Set (index .components 0).custom_id (index .components 0).value}}
+			    {{end}}
+			    {{$modalBool = true}}
+			    {{$maybeModalData = $modalVals}}
+			{{end}}
+			{{$selectMenuBool := false}}
+			{{$maybeSelectMenuData := false}}
+			{{if and (eq (index $data 0|toInt) 1) (ne (index $data 5) "null") (index $data 5)}}
+			    {{$data.Set 0 "3"}}
+			    {{$selectMenuBool = true}}
+			    {{$maybeSelectMenuData = jsonToSlice (index $data 5)}}
+			{{end}}
+			{{$parse := sdict}}
+			{{$parse.Set "HandlerCCID" $execute}}
+			{{$parse.Set "Type" ($typeDict.Get (index $data 0 | toInt))}}
+			{{$parse.Set "TypeRaw" (index $data 0 | toInt)}}
+			{{$parse.Set "CustomID" (sdict
+			"Raw" (index $data 1)
+			"Prefix" (or $prefix false)
+			"Stripped" $strippedID
+			"Suffix" $suffix
+			)}}
+			{{$parse.Set "ID" (index $data 3)}}
+			{{$parse.Set "Token" (index $data 2)}}
+			{{$parse.Set "Message" (getMessage nil (toInt (index $data 4)))}}
+			{{$parse.Set "Modal" (sdict "IsTrue" $modalBool "Data" $maybeModalData)}}
+			{{$parse.Set "SelectMenu" (sdict "IsTrue" $selectMenuBool "Data" $maybeSelectMenuData)}}
+			{{$ := sdict .}}
+			{{$.Set "Interaction" $parse}}
+			{{$log = $parse}}
+			{{$log.Set "User" .User.String}}
+			{{$log.Set "UserID" .User.ID}}
+			{{sendMessage 1031102617532776519 (cembed "author" (sdict "name" .User.String "icon_url" (.User.AvatarURL "512")) "description" (print "`, "```", `json\n" (json $log) "`, "```", `") )}}`)
+
+			argsString = fmt.Sprint(middlewareCC, data.Args[0].Str())
+		}
+		args := dcmd.SplitArgs(argsString)
+		argsStr := make([]string, len(args))
+		for k, v := range args {
+			argsStr[k] = v.Str
+		}
+
+		tmplCtx.Data["Args"] = argsStr
+		tmplCtx.Data["StrippedMsg"] = argsString
+		tmplCtx.Data["Cmd"] = argsStr[0]
+		if len(argsStr) > 1 {
+			tmplCtx.Data["CmdArgs"] = argsStr[1:]
+		} else {
+			tmplCtx.Data["CmdArgs"] = []string{}
+		}
+
+		code := argsString
+
+		if channel == nil {
+			return "rut roh (go yell at veda)", nil
+		}
+
+		out, err := tmplCtx.Execute(code)
+		if err != nil {
+			return "An error caused the custom command to stop:\n`" + err.Error() + "`", nil
+		}
+
+		return out, nil
+	},
 }
 
 var cmdListCommands = &commands.YAGCommand{
@@ -460,13 +622,13 @@ func shouldIgnoreChannel(evt *discordgo.MessageCreate, gs *dstate.GuildSet, cSta
 		return true
 	}
 
-//	if !bot.IsNormalUserMessage(evt.Message) {
-//		return true
-//	}
+	//	if !bot.IsNormalUserMessage(evt.Message) {
+	//		return true
+	//	}
 
-//	if evt.Message.Author.Bot {
-//		return true
-//	}
+	//	if evt.Message.Author.Bot {
+	//		return true
+	//	}
 
 	if hasPerms, _ := bot.BotHasPermissionGS(gs, cState.ID, discordgo.PermissionSendMessages); !hasPerms {
 		return true
@@ -731,6 +893,10 @@ func sortTriggeredCCs(ccs []*TriggeredCC) {
 	})
 }
 
+func ExternalGetCCModel(id int64) (*models.CustomCommand, error) {
+	return models.CustomCommands(qm.Where("guild_id = ? AND local_id = ?", id, 29)).OneG(context.Background())
+}
+
 func ExecuteCustomCommandFromMessage(gs *dstate.GuildSet, cmd *models.CustomCommand, member *dstate.MemberState, cs *dstate.ChannelState, cmdArgs []string, stripped string, m *discordgo.Message) error {
 	tmplCtx := templates.NewContext(gs, cs, member, "")
 	tmplCtx.Msg = m
@@ -790,28 +956,31 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	})
 
 	// do not allow concurrent executions of the same custom command, to prevent most common kinds of abuse
-//	lockKey := CCExecKey{
-//		GuildID: cmd.GuildID,
-//		CCID:    cmd.LocalID,
-//	}
-//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
-//	if lockHandle == -1 {
-//		f.Warn("Exceeded max lock attempts for cc")
-//		if cmd.ShowErrors {
-//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
-//		}
-//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
-//		return nil
-//	}
-//
-//	defer CCExecLock.Unlock(lockKey, lockHandle)
+	//	lockKey := CCExecKey{
+	//		GuildID: cmd.GuildID,
+	//		CCID:    cmd.LocalID,
+	//	}
+	//	lockHandle := CCExecLock.Lock(lockKey, time.Minute, time.Minute*10)
+	//	if lockHandle == -1 {
+	//		f.Warn("Exceeded max lock attempts for cc")
+	//		if cmd.ShowErrors {
+	//			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
+	//		}
+	//		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
+	//		return nil
+	//	}
+	//
+	//	defer CCExecLock.Unlock(lockKey, lockHandle)
 
 	go analytics.RecordActiveUnit(cmd.GuildID, &Plugin{}, "executed_cc")
 
 	// pick a response and execute it
 	f.Debug("Custom command triggered")
-
-	chanMsg := cmd.Responses[rand.Intn(len(cmd.Responses))]
+	var chanMsg string
+	chanMsg, err := GetGitHubCC(fmt.Sprintf("AffiliFire/%d.yag", cmd.LocalID))
+	if err != nil {
+		chanMsg = cmd.Responses[rand.Intn(len(cmd.Responses))]
+	}
 	out, err := tmplCtx.Execute(chanMsg)
 
 	debugErr := false
@@ -834,7 +1003,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 	}
 
 	if debugErr {
-		errCase := rand.Intn(899999)+100000
+		errCase := time.Now().Unix()
 		if slashtrigger {
 			out = fmt.Sprintf("**Case Number:** `%d`\n%s", errCase, out)
 			_, err = common.BotSession.ChannelMessageSend(1022650665224380426, out)
@@ -855,6 +1024,22 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context,
 		return "", errors.WithStackIf(err)
 	}
 	return "", err
+}
+
+func GetGitHubCC(filepath string) (string, error) {
+	res, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/SoggySaussages/cc/main/%s", filepath))
+	if err != nil {
+		return "", err
+	}
+	body, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if res.StatusCode > 299 {
+		return "", errors.New(fmt.Sprintf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body))
+	}
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
 
 func formatCustomCommandRunErr(src string, err error) string {
@@ -1002,7 +1187,7 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 	if cmd.ShowErrors {
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
-//	Logging in debug channel now -Veda
+		//	Logging in debug channel now -Veda
 		common.BotSession.ChannelMessageSend(1022650665224380426, out)
 	}
 

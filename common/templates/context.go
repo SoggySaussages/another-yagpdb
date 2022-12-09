@@ -86,23 +86,31 @@ var (
 		"bitwiseRightShift": tmplBitwiseRightShift,
 
 		// misc
-		"humanizeThousands":  tmplHumanizeThousands,
-		"dict":               Dictionary,
-		"sdict":              StringKeyDictionary,
-		"structToSdict":      StructToSdict,
-		"cembed":             CreateEmbed,
-		"cslice":             CreateSlice,
-		"complexMessage":     CreateMessageSend,
-		"complexMessageEdit": CreateMessageEdit,
-		"kindOf":             KindOf,
-		"respond":            CreateInteractionResponseSend,
-		"modal":              CreateModal,
+		"humanizeThousands":  		tmplHumanizeThousands,
+		"dict":               		Dictionary,
+		"sdict":              		StringKeyDictionary,
+		"structToSdict":      		StructToSdict,
+		"cembed":             		CreateEmbed,
+		"cslice":             		CreateSlice,
+		"complexMessage":     		CreateMessageSend,
+		"complexMessageEdit": 		CreateMessageEdit,
+		"kindOf":             		KindOf,
+		"respond":            		CreateInteractionResponseSend,
+		"editResponse":       		EditInteractionResponse,
+		"editComponentMessage": 	EditComponentMessageSend,
+		"deleteIntractionResponse": tmplDeleteInteractionResponse,
+		"modal":              		CreateModal,
+		"button":              		ParseButton,
+		"menu":              		ParseSelectMenu,
+		"menuOption":              	ParseSelectMenuOption,
+		"defer":              		DeferResponse,
 
 		"adjective":   common.RandomAdjective,
 		"in":          in,
 		"inFold":      inFold,
 		"json":        tmplJson,
 		"jsonToSdict": tmplJSONToSDict,
+		"jsonToSlice": tmplJSONToSlice,
 		"noun":        common.RandomNoun,
 		"randInt":     randInt,
 		"roleAbove":   roleIsAbove,
@@ -661,6 +669,7 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("getMembers", common.BotSession.GuildMembers)
 	c.addContextFunc("getServer", common.BotSession.GuildGet)
 	c.addContextFunc("moveToVoiceChannel", common.BotSession.GuildMemberMove)
+	c.addContextFunc("auditLog", common.BotSession.GuildAuditLog)
 	c.addContextFunc("getInvites", common.BotSession.GuildInvites)
 	c.addContextFunc("getInvite", common.BotSession.InviteWithCounts)
 	c.addContextFunc("deleteInvite", common.BotSession.InviteDelete)
@@ -668,6 +677,10 @@ func baseContextFuncs(c *Context) {
 	c.addContextFunc("error", c.forceError)
 	c.addContextFunc("location", c.getLocation)
 	c.addContextFunc("sendEmail", c.sendEmail)
+
+	c.addContextFunc("newCaptcha", c.newCaptcha)
+	c.addContextFunc("checkCaptcha", c.checkCaptcha)
+	c.addContextFunc("restartCaptcha", c.regenerateCaptchaStore)
 }
 
 type limitedWriter struct {

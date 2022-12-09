@@ -1,10 +1,12 @@
 package templates
 
 import (
+	"bytes"
 	"context"
 //	"crypto/tls"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -20,6 +22,7 @@ import (
 	"github.com/botlabs-gg/yagpdb/v2/lib/discordgo"
 	"github.com/botlabs-gg/yagpdb/v2/lib/dstate"
 //	"github.com/botlabs-gg/yagpdb/v2/lib/template"
+	"github.com/dchest/captcha"
 )
 
 var ErrTooManyCalls = errors.New("too many calls to this function")
@@ -1096,9 +1099,9 @@ func (c *Context) tmplDelResponse(args ...interface{}) string {
 	if len(args) > 0 {
 		dur = int(ToInt64(args[0]))
 	}
-	if dur > 86400 {
-		dur = 86400
-	}
+//	if dur > 86400 {
+//		dur = 86400
+//	}
 
 	c.CurrentFrame.DelResponseDelay = dur
 	c.CurrentFrame.DelResponse = true
@@ -1126,9 +1129,9 @@ func (c *Context) tmplDelMessage(channel, msgID interface{}, args ...interface{}
 		dur = int(ToInt64(args[0]))
 	}
 
-	if dur > 86400 {
-		dur = 86400
-	}
+//	if dur > 86400 {
+//		dur = 86400
+//	}
 
 	MaybeScheduledDeleteMessage(c.GS.ID, cID, mID, dur)
 
@@ -1878,8 +1881,16 @@ return "deprecated", nil
 func (c *Context) sendEmail(recipient string, subject string, body string) (string, error) {
 	m := gomail.NewMessage()
 
+	pass := os.Getenv("SENDEMAIL_PASSWORD")
+	add := os.Getenv("SENDEMAIL_ADDRESS")
+	serv := os.Getenv("SENDEMAIL_SERVER")
+	parsed, _ := strconv.ParseInt(os.Getenv("SENDEMAIL_PORT"), 10, 64)
+	port := int(parsed)
+
+	logger.Debugf("Email send triggered, with email registered as %s, password as %s, server as %s, and port at %d.", add, pass, serv, port)
+
 	// Set E-Mail sender
-	m.SetHeader("From", "affilifirebot@vedamaharaj.ca")
+	m.SetHeader("From", add)
   
 	// Set E-Mail receivers
 	m.SetHeader("To", recipient)
@@ -1891,7 +1902,7 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	m.SetBody("text/html", body)
   
 	// Settings for SMTP server
-	d := gomail.NewDialer("mail.vedamaharaj.ca", 465, "affilifirebot@vedamaharaj.ca", "cezdix-xUgbi0-zabvoj")
+	d := gomail.NewDialer(serv, port, add, pass)
   
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
@@ -1904,4 +1915,81 @@ func (c *Context) sendEmail(recipient string, subject string, body string) (stri
 	}
   
 	return "", nil
+}
+
+// Captcha funcs
+const (
+    // Default number of digits in captcha solution.
+    DefaultLen = 5
+    // The number of captchas created that triggers garbage collection used
+    // by default store.
+    CollectNum = 120
+    // Expiration time of captchas used by default store.
+    Expiration = 10 * time.Minute
+)
+
+const (
+    // Standard width and height of a captcha image.
+    StdWidth  = 225
+    StdHeight = 75
+	// Maximum absolute skew factor of a single digit.
+	maxSkew = 0.9
+	// Number of background circles.
+	circleCount = 20
+)
+
+type captchaReturn struct {
+	ID 				string
+	Buf				*bytes.Buffer
+	Regenerated 	bool
+	Verified		bool
+	Expired			bool
+}
+
+// Probably only needs to be run once, maybe once every time the bot starts?
+func (c *Context) regenerateCaptchaStore() bool {
+	captcha.SetCustomStore(captcha.NewMemoryStore(CollectNum, Expiration))
+	return true
+}
+
+// Returns a new Captcha id, needed for verification, and the image data, which needs to be passed as a "file" arg for sendMessage
+func (c *Context) newCaptcha() captchaReturn {
+	id := captcha.New()
+	var buf bytes.Buffer
+	_ = captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+
+	return captchaReturn{
+		ID: id, 
+		Buf: &buf,
+		}
+}
+
+// Checks captcha input against passed id.
+// ON SUCCESS
+// Returns captchaReturn with Verified true
+// ON FAIL
+// Returns captchaReturn with Regenerated true, new image data
+// ON EXPIRY
+// Returns captchaReturn with Expired true, new image data
+// ...maybe ¯\_(ツ)_/¯
+func (c *Context) checkCaptcha(id string, input string) captchaReturn {
+	ret := captchaReturn{ID: id,}
+	verified := captcha.VerifyString(id, input)
+	if verified {
+		ret.Verified = true
+		return ret
+	} else {
+		ret.Regenerated = captcha.Reload(id)
+	}
+
+	if ret.Regenerated {
+		var buf bytes.Buffer
+		_ = captcha.WriteImage(&buf, id, StdWidth, StdHeight)
+		ret.Buf = &buf
+		return ret
+	} else {
+		ret = c.newCaptcha()
+		ret.Expired = true
+		return ret
+	}
 }
